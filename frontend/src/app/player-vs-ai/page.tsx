@@ -1,14 +1,14 @@
 import Board from "@/components/Board";
 import Container from "@/components/Container";
-import LocalMultiplayer from "./LocalMultiplayer";
+import PlayerVsAI from "./PlayerVsAI";
 
 export default function Page() {
     return (
         <Container className="text-center pt-8">
             <p className="text-2xl font-semibold text-center mb-4">
-                Local Multiplayer
+                Player vs AI
             </p>
-            <LocalMultiplayer />
+            <PlayerVsAI />
         </Container>
     );
 }

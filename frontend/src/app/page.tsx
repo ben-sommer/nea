@@ -13,10 +13,12 @@ export default function Page() {
                 <div className="text-center">
                     <p>Compete online</p>
                     <div className="flex gap-2 justify-stretch text-indigo-600 mt-2 select-none">
-                        <div className="w-48 py-6 justify-center rounded-lg border-2 flex items-center flex-col gap-1 border-indigo-500 hover:bg-indigo-500 hover:text-white cursor-pointer">
-                            <IoGlobeOutline className="text-2xl" />
-                            <p>Player vs Player</p>
-                        </div>
+                        <Link href="/online-multiplayer">
+                            <div className="w-48 py-6 justify-center rounded-lg border-2 flex items-center flex-col gap-1 border-indigo-500 hover:bg-indigo-500 hover:text-white cursor-pointer">
+                                <IoGlobeOutline className="text-2xl" />
+                                <p>Player vs Player</p>
+                            </div>
+                        </Link>
                     </div>
                 </div>
                 <div className="flex items-center">
@@ -31,10 +33,12 @@ export default function Page() {
                                 <p>Player vs Player</p>
                             </div>
                         </Link>
-                        <div className="w-48 py-6 justify-center rounded-lg border-2 flex items-center flex-col gap-1 border-indigo-500 hover:bg-indigo-500 hover:text-white cursor-pointer">
-                            <IoPersonOutline className="text-2xl" />
-                            <p>Player vs AI</p>
-                        </div>
+                        <Link href="/player-vs-ai">
+                            <div className="w-48 py-6 justify-center rounded-lg border-2 flex items-center flex-col gap-1 border-indigo-500 hover:bg-indigo-500 hover:text-white cursor-pointer">
+                                <IoPersonOutline className="text-2xl" />
+                                <p>Player vs AI</p>
+                            </div>
+                        </Link>
                     </div>
                 </div>
             </div>
