@@ -2,7 +2,7 @@
 
 import { Game } from "@/definitions/game";
 import { BoardState, Square } from "@/types/game";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSnapshot } from "valtio";
 
 const ColumnLabels = () => {
@@ -64,7 +64,7 @@ const Scores = ({ game }: { game: Game }) => {
                 <p>{game.blackName}</p>
             </div>
             <div
-                className={`flex items-center gap-2 border-2 p-1 rounded-lg ${
+                className={`flex flex-row-reverse items-center gap-2 border-2 p-1 rounded-lg ${
                     game.turn == "white"
                         ? "border-indigo-500"
                         : "border-transparent"
@@ -80,7 +80,15 @@ const Scores = ({ game }: { game: Game }) => {
     );
 };
 
-export default function Board({ game }: { game: Game }) {
+export default function Board({
+    game,
+    completionButtonText,
+    completionButtonOnClick,
+}: {
+    game: Game;
+    completionButtonText: string;
+    completionButtonOnClick: () => void;
+}) {
     useEffect(() => {
         // @ts-ignore
         window.game = game;
@@ -89,49 +97,70 @@ export default function Board({ game }: { game: Game }) {
     const snap = useSnapshot(game);
 
     return (
-        <div className="inline-block">
-            <Scores game={game} />
-            <ColumnLabels />
-            {Array(8)
-                .fill(null)
-                .map((_, rowIndex) => (
-                    <div key={rowIndex} className="flex">
-                        <RowLabel rowIndex={7 - rowIndex} />
-                        {Array(8)
-                            .fill(null)
-                            .map((_, columnIndex) => (
-                                <div
-                                    key={`${rowIndex}-${columnIndex}`}
-                                    className={`w-10 h-10 border border-gray-500 p-1 ${
-                                        snap.board[columnIndex][
-                                            7 - rowIndex
-                                        ] === null
-                                            ? "cursor-pointer"
-                                            : ""
-                                    }`}
-                                    style={{
-                                        backgroundColor: "#CDCDCD",
-                                    }}
-                                    onClick={(_) =>
-                                        game.handleSquareClick(
-                                            columnIndex,
-                                            7 - rowIndex
-                                        )
-                                    }
-                                >
-                                    <Counter
-                                        color={
+        <div className="relative">
+            <div className="inline-block">
+                <Scores game={game} />
+                <ColumnLabels />
+                {Array(8)
+                    .fill(null)
+                    .map((_, rowIndex) => (
+                        <div key={rowIndex} className="flex">
+                            <RowLabel rowIndex={7 - rowIndex} />
+                            {Array(8)
+                                .fill(null)
+                                .map((_, columnIndex) => (
+                                    <div
+                                        key={`${rowIndex}-${columnIndex}`}
+                                        className={`w-10 h-10 border ${
+                                            snap.finished ? "opacity-50" : ""
+                                        } border-gray-500 p-1 ${
                                             snap.board[columnIndex][
                                                 7 - rowIndex
-                                            ]
+                                            ] === null
+                                                ? "cursor-pointer"
+                                                : ""
+                                        }`}
+                                        style={{
+                                            backgroundColor: "#CDCDCD",
+                                        }}
+                                        onClick={(_) =>
+                                            !game.handleSquareClick(
+                                                columnIndex,
+                                                7 - rowIndex
+                                            )
                                         }
-                                    />
-                                </div>
-                            ))}
-                        <RowLabel rowIndex={7 - rowIndex} />
-                    </div>
-                ))}
-            <ColumnLabels />
+                                    >
+                                        <Counter
+                                            color={
+                                                snap.board[columnIndex][
+                                                    7 - rowIndex
+                                                ]
+                                            }
+                                        />
+                                    </div>
+                                ))}
+                            <RowLabel rowIndex={7 - rowIndex} />
+                        </div>
+                    ))}
+                <ColumnLabels />
+            </div>
+            {snap.finished && (
+                <div className="absolute top-0 text-center w-full mt-[12.5rem]">
+                    <p className="font-semibold bg-white flex flex-col w-64 mx-auto gap-2 rounded-md border-gray-300 border shadow-md px-4 py-2">
+                        <span className="text-2xl">
+                            {snap.winner == "draw"
+                                ? "Draw"
+                                : `${snap.getNameFromColor(snap.winner)} wins!`}
+                        </span>
+                        <span
+                            onClick={completionButtonOnClick}
+                            className="px-4 py-2 rounded-md text-white bg-indigo-500 shadow-md text-sm font-medium outline-none cursor-pointer"
+                        >
+                            {completionButtonText}
+                        </span>
+                    </p>
+                </div>
+            )}
         </div>
     );
 }

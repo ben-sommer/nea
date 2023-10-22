@@ -5,8 +5,17 @@ export class Game {
     turn: "black" | "white";
     blackName: string;
     whiteName: string;
+    finished: boolean;
 
     constructor() {
+        this.board = this.initialBoard;
+        this.turn = "black";
+        this.blackName = "Black";
+        this.whiteName = "White";
+        this.finished = false;
+    }
+
+    get initialBoard() {
         const board: BoardState = Array(8)
             .fill(null)
             .map((_) => Array(8).fill(null));
@@ -16,17 +25,14 @@ export class Game {
         board[4][3] = "white";
         board[4][4] = "black";
 
-        this.board = board;
-        this.turn = "black";
-        this.blackName = "Black";
-        this.whiteName = "White";
+        return board;
     }
 
     get scores() {
         const addReduce = (
             array: any[],
             condition: (item: any) => number
-        ): any[] =>
+        ): number =>
             array.reduce(
                 (previous, current) => previous + (condition(current) || 0),
                 0
@@ -82,7 +88,7 @@ export class Game {
             yDir: number,
             squares: [number, number][]
         ): [number, number][] => {
-            if (x > 7 || x < 0 || y > 7 || y < 0) {
+            if (x + xDir > 7 || x + xDir < 0 || y + yDir > 7 || y + yDir < 0) {
                 // Hit the edge of the board without a counter of the opponent's color to bound the run
                 return [];
             }
@@ -115,16 +121,88 @@ export class Game {
         return squares;
     }
 
+    get winner() {
+        if (this.scores.black > this.scores.white) {
+            return "black";
+        } else if (this.scores.black < this.scores.white) {
+            return "white";
+        } else {
+            return "draw";
+        }
+    }
+
+    get anyMovesLeft() {
+        for (let x = 0; x < 8; x++) {
+            for (let y = 0; y < 8; y++) {
+                if (this.checkMove(x, y).length > 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    getNameFromColor(color: "black" | "white") {
+        return color == "black" ? this.blackName : this.whiteName;
+    }
+
+    get isGameOver() {
+        if (this.anyMovesLeft) {
+            return false;
+        }
+
+        this.turn = this.otherPlayer;
+
+        const opponentMovesLeft = this.anyMovesLeft;
+
+        this.turn = this.otherPlayer;
+
+        if (opponentMovesLeft) {
+            // Current player skips turn as cannot go - opponent has possible moves
+            return false;
+        } else {
+            this.finished = true;
+
+            // Neither player can place any more counters so W/D/L state is declared
+            return this.winner;
+        }
+    }
+
     handleSquareClick(x: number, y: number) {
+        // Return values:
+        // true - no further action needed
+        // false - game is over
+
+        if (this.isGameOver) {
+            return false;
+        }
+
         const flippedSquares = this.performMove(x, y);
 
         if (flippedSquares == 0) {
-            return false;
+            return true;
         }
 
         this.board[x][y] = this.turn;
         this.turn = this.otherPlayer;
 
+        if (this.isGameOver) {
+            return false;
+        }
+
+        if (!this.anyMovesLeft) {
+            // No moves available for opponent, so play reverts to previous player
+            console.log("NO MOVES, REVERTED");
+
+            this.turn = this.otherPlayer;
+        }
+
         return true;
+    }
+
+    reset() {
+        this.board = this.initialBoard;
+        this.finished = false;
     }
 }
