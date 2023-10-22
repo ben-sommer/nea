@@ -1,15 +1,22 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
+import { database } from "./database";
 
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT;
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Test Server");
-});
+(async () => {
+    const db = await database();
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+    app.get("/", async (req: Request, res: Response) => {
+        const users = await db.all("SELECT * FROM User");
+
+        res.json(users);
+    });
+
+    app.listen(port, () => {
+        console.log(`Server running at http://localhost:${port}`);
+    });
+})();
