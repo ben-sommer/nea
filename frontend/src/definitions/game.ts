@@ -203,6 +203,9 @@ export class Game {
 
     reset() {
         this.board = this.initialBoard;
+        this.turn = "black";
+        this.blackName = "Black";
+        this.whiteName = "White";
         this.finished = false;
     }
 }
