@@ -50,14 +50,26 @@ const Counter = ({ color }: { color: Square }) => {
 const Scores = ({ game }: { game: Game }) => {
     return (
         <div className="flex w-full items-center justify-between px-9 mb-4 font-medium">
-            <div className="flex items-center gap-2">
+            <div
+                className={`flex items-center gap-2 border-2 p-1 rounded-lg ${
+                    game.turn == "black"
+                        ? "border-indigo-500"
+                        : "border-transparent"
+                }`}
+            >
                 <div className="w-6 h-6 border border-black shadow-md rounded-full">
                     <Counter color="black" />
                 </div>
                 <p>{game.scores.black}</p>
                 <p>{game.blackName}</p>
             </div>
-            <div className="flex flex-row-reverse items-center gap-2">
+            <div
+                className={`flex items-center gap-2 border-2 p-1 rounded-lg ${
+                    game.turn == "white"
+                        ? "border-indigo-500"
+                        : "border-transparent"
+                }`}
+            >
                 <div className="w-6 h-6 border border-gray-400 shadow-md rounded-full">
                     <Counter color="white" />
                 </div>
