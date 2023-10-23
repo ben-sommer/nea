@@ -1,25 +1,28 @@
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { readFile, readdir } from "fs/promises";
+import { join } from "path";
 
 const databaseFilename = "db.sqlite";
 
 export const sqlFromFile = async (
-    type: "definition" | "query",
+    type: "definition" | "query" | "update",
     filename: string
 ) => {
-    const sql = await readFile(`./sql/${type}/${filename}`);
+    const sql = await readFile(
+        join(__dirname, "..", "sql", type, filename + ".sql")
+    );
 
     return sql.toString();
 };
 
 const getDefinitions = async () => {
-    const files = await readdir("./sql/definition");
+    const files = await readdir(join(__dirname, "..", "sql", "definition"));
 
     let sql = [];
 
     for (const file of files) {
-        sql.push(await sqlFromFile("definition", file));
+        sql.push(await sqlFromFile("definition", file.replace(".sql", "")));
     }
 
     return sql;

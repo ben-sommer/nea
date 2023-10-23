@@ -16,17 +16,18 @@ exports.database = exports.sqlFromFile = void 0;
 const sqlite3_1 = __importDefault(require("sqlite3"));
 const sqlite_1 = require("sqlite");
 const promises_1 = require("fs/promises");
+const path_1 = require("path");
 const databaseFilename = "db.sqlite";
 const sqlFromFile = (type, filename) => __awaiter(void 0, void 0, void 0, function* () {
-    const sql = yield (0, promises_1.readFile)(`./sql/${type}/${filename}`);
+    const sql = yield (0, promises_1.readFile)((0, path_1.join)(__dirname, "..", "sql", type, filename + ".sql"));
     return sql.toString();
 });
 exports.sqlFromFile = sqlFromFile;
 const getDefinitions = () => __awaiter(void 0, void 0, void 0, function* () {
-    const files = yield (0, promises_1.readdir)("./sql/definition");
+    const files = yield (0, promises_1.readdir)((0, path_1.join)(__dirname, "..", "sql", "definition"));
     let sql = [];
     for (const file of files) {
-        sql.push(yield (0, exports.sqlFromFile)("definition", file));
+        sql.push(yield (0, exports.sqlFromFile)("definition", file.replace(".sql", "")));
     }
     return sql;
 });
