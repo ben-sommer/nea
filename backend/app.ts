@@ -35,7 +35,11 @@ app.use(function (req, res, next) {
 
     app.post("/register", async (req: Request, res: Response) => {
         const schema = object({
-            username: string().required().min(3).max(16),
+            username: string()
+                .required()
+                .min(3)
+                .max(16)
+                .matches(/^(?=[a-zA-Z0-9._]{8,20}$)(?!.*[_.]{2})[^_.].*[^_.]$/),
             firstName: string().required().min(1).max(256),
             lastName: string().required().min(1).max(256),
             password: string().required().min(8).max(16),
