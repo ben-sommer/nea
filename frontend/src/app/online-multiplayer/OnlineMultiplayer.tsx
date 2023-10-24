@@ -60,7 +60,6 @@ export default function OnlineMultiplayer() {
                         <p>An internal error occurred - please try again</p>
                     ) : (
                         <div className="flex flex-col gap-2 items-center">
-                            <p>Online players ({players.length}):</p>
                             <button
                                 onClick={() => {
                                     removeCookie("token");
@@ -70,6 +69,7 @@ export default function OnlineMultiplayer() {
                             >
                                 Log Out
                             </button>
+                            <p>Online players ({players.length}):</p>
                             <div>
                                 {players.map((player) => (
                                     <p key={player.username}>
