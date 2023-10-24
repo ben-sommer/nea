@@ -16,6 +16,7 @@ const date_1 = require("../utils/date");
 class Multiplayer {
     constructor(db) {
         this.clients = [];
+        this.games = [];
         this.db = db;
     }
     addClient(connection, token) {

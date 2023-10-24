@@ -3,13 +3,16 @@ import { Client } from "./client";
 import ws from "ws";
 import { sqlFromFile } from "../utils/database";
 import { sqlToJsDate } from "../utils/date";
+import { Game } from "./game";
 
 export class Multiplayer {
     clients: Client[];
+    games: Game[];
     db: Database;
 
     constructor(db: Database) {
         this.clients = [];
+        this.games = [];
         this.db = db;
     }
 
