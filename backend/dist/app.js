@@ -27,6 +27,11 @@ const { app } = (0, express_ws_1.default)(baseApp);
 const port = process.env.PORT;
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "*");
+    next();
+});
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const db = yield (0, database_1.database)();
     const multiplayer = new multiplayer_1.Multiplayer(db);
@@ -67,12 +72,13 @@ app.use((0, cookie_parser_1.default)());
             return res.sendStatus(500);
         }
     }));
-    app.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    app.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const schema = (0, yup_1.object)({
             username: (0, yup_1.string)().required().min(3).max(16),
             password: (0, yup_1.string)().required().min(1),
         });
         let body = null;
+        console.log(req.body);
         try {
             body = yield schema.validate(req.body);
         }

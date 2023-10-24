@@ -16,6 +16,12 @@ const port = process.env.PORT;
 app.use(express.json());
 app.use(cookieParser());
 
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "*");
+    next();
+});
+
 (async () => {
     const db = await database();
 
@@ -65,13 +71,15 @@ app.use(cookieParser());
         }
     });
 
-    app.post("/login", async (req: Request, res: Response) => {
+    app.post("/signin", async (req: Request, res: Response) => {
         const schema = object({
             username: string().required().min(3).max(16),
             password: string().required().min(1),
         });
 
         let body = null;
+
+        console.log(req.body);
 
         try {
             body = await schema.validate(req.body);
