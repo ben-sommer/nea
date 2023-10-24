@@ -56,6 +56,9 @@ export class Client {
                     invitee.send("game:invited", this.username);
 
                     break;
+                // case "game:accept-invite":
+                //     this.multiplayer.games.push
+                //     break;
             }
         });
     }
