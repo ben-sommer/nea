@@ -20,25 +20,38 @@ class Multiplayer {
     }
     addClient(connection, token) {
         return __awaiter(this, void 0, void 0, function* () {
-            const client = new client_1.Client(connection);
             const user = yield this.db.get(yield (0, database_1.sqlFromFile)("query", "GetUserByToken"), {
                 ":token": token,
             });
+            if (!user) {
+                throw new Error("User not found");
+            }
             const expiry = (0, date_1.sqlToJsDate)(user.TokenExpiry);
             if (expiry < new Date()) {
-                throw new Error("Token Expired");
+                throw new Error("Token expired");
             }
+            const client = new client_1.Client(connection, user.Username, user.FirstName, user.LastName);
             client.send("user:players", this.clients.map((client) => ({
-                id: client.id,
+                name: `${client.firstName} ${client.lastName}`,
+                username: client.username,
             })));
+            // Remove any existing clients with the same account
+            this.removeClient(client.username);
             this.clients.push(client);
             connection.on("close", () => {
-                this.removeClient(client.id);
+                this.removeClient(client.username);
             });
         });
     }
-    removeClient(id) {
-        this.clients = this.clients.filter((client) => client.id !== id);
+    removeClient(username) {
+        const client = this.getClient(username);
+        if (client) {
+            client.connection.close();
+        }
+        this.clients = this.clients.filter((client) => client.username !== username);
+    }
+    getClient(username) {
+        return this.clients.find((client) => client.username == username);
     }
 }
 exports.Multiplayer = Multiplayer;

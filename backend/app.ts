@@ -79,8 +79,6 @@ app.use(function (req, res, next) {
 
         let body = null;
 
-        console.log(req.body);
-
         try {
             body = await schema.validate(req.body);
         } catch (e: any) {
@@ -131,17 +129,36 @@ app.use(function (req, res, next) {
 
     app.ws("/multiplayer", async (ws, req) => {
         if (!req.cookies.token) {
-            return ws.close();
+            ws.send(JSON.stringify(["error:token"]));
         }
 
         try {
             await multiplayer.addClient(ws, req.cookies.token);
         } catch (e: any) {
-            if (e.message == "Token Expired") {
-                ws.send(JSON.stringify(["auth:expired"]));
-                return ws.close();
+            if (e.message == "Token expired" || e.message == "User not found") {
+                ws.send(JSON.stringify(["error:token"]));
             }
         }
+
+        ws.on("message", async (message) => {
+            const parsedMessage = JSON.parse(message.toString());
+
+            const instruction = parsedMessage[0];
+            const body = parsedMessage[1] || {};
+
+            if (instruction == "refresh:token" && body) {
+                try {
+                    await multiplayer.addClient(ws, body);
+                } catch (e: any) {
+                    if (
+                        e.message == "Token expired" ||
+                        e.message == "User not found"
+                    ) {
+                        ws.send(JSON.stringify(["error:token"]));
+                    }
+                }
+            }
+        });
     });
 
     app.listen(port, () => {

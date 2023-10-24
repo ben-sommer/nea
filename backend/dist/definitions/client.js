@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Client = void 0;
-const uuid_1 = require("uuid");
 class Client {
-    constructor(connection) {
+    constructor(connection, username, firstName, lastName) {
         this.connection = connection;
-        this.id = (0, uuid_1.v4)();
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
     }
     send(event, body) {
         this.connection.send(JSON.stringify([event].concat([body] || [])));

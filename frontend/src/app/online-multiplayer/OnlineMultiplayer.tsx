@@ -10,7 +10,7 @@ import SignIn from "@/components/SignIn";
 export default function OnlineMultiplayer() {
     const [signedIn, setSignedIn] = useState(true);
 
-    const { sendMessage, lastMessage, readyState } = useWebSocket(
+    const { sendMessage, readyState } = useWebSocket(
         "ws://localhost:3010/multiplayer",
         {
             onMessage: (message) => {
@@ -19,8 +19,13 @@ export default function OnlineMultiplayer() {
                 const instruction = parsedMessage[0];
                 const body = parsedMessage[1] || {};
 
+                console.log({
+                    instruction,
+                    body,
+                });
+
                 switch (instruction) {
-                    case "auth:expired":
+                    case "error:token":
                         setSignedIn(false);
                 }
             },
@@ -48,8 +53,9 @@ export default function OnlineMultiplayer() {
                 </>
             ) : (
                 <SignIn
-                    onSuccess={() => {
+                    onSuccess={(token) => {
                         setSignedIn(true);
+                        sendMessage(JSON.stringify(["refresh:token", token]));
                     }}
                 />
             )}

@@ -3,11 +3,20 @@ import ws from "ws";
 
 export class Client {
     connection: ws;
-    id: string;
+    firstName: string;
+    lastName: string;
+    username: string;
 
-    constructor(connection: ws) {
+    constructor(
+        connection: ws,
+        username: string,
+        firstName: string,
+        lastName: string
+    ) {
         this.connection = connection;
-        this.id = uuid();
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
     }
 
     send(event: string, body?: any) {

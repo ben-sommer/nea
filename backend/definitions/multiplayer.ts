@@ -14,8 +14,6 @@ export class Multiplayer {
     }
 
     async addClient(connection: ws, token: string) {
-        const client = new Client(connection);
-
         const user = await this.db.get(
             await sqlFromFile("query", "GetUserByToken"),
             {
@@ -23,27 +21,54 @@ export class Multiplayer {
             }
         );
 
+        if (!user) {
+            throw new Error("User not found");
+        }
+
         const expiry = sqlToJsDate(user.TokenExpiry);
 
         if (expiry < new Date()) {
-            throw new Error("Token Expired");
+            throw new Error("Token expired");
         }
+
+        const client = new Client(
+            connection,
+            user.Username,
+            user.FirstName,
+            user.LastName
+        );
 
         client.send(
             "user:players",
             this.clients.map((client) => ({
-                id: client.id,
+                name: `${client.firstName} ${client.lastName}`,
+                username: client.username,
             }))
         );
+
+        // Remove any existing clients with the same account
+        this.removeClient(client.username);
 
         this.clients.push(client);
 
         connection.on("close", () => {
-            this.removeClient(client.id);
+            this.removeClient(client.username);
         });
     }
 
-    removeClient(id: string) {
-        this.clients = this.clients.filter((client) => client.id !== id);
+    removeClient(username: string) {
+        const client = this.getClient(username);
+
+        if (client) {
+            client.connection.close();
+        }
+
+        this.clients = this.clients.filter(
+            (client) => client.username !== username
+        );
+    }
+
+    getClient(username: string) {
+        return this.clients.find((client) => client.username == username);
     }
 }

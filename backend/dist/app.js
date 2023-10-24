@@ -78,7 +78,6 @@ app.use(function (req, res, next) {
             password: (0, yup_1.string)().required().min(1),
         });
         let body = null;
-        console.log(req.body);
         try {
             body = yield schema.validate(req.body);
         }
@@ -117,17 +116,32 @@ app.use(function (req, res, next) {
     }));
     app.ws("/multiplayer", (ws, req) => __awaiter(void 0, void 0, void 0, function* () {
         if (!req.cookies.token) {
-            return ws.close();
+            ws.send(JSON.stringify(["error:token"]));
         }
         try {
             yield multiplayer.addClient(ws, req.cookies.token);
         }
         catch (e) {
-            if (e.message == "Token Expired") {
-                ws.send(JSON.stringify(["auth:expired"]));
-                return ws.close();
+            if (e.message == "Token expired" || e.message == "User not found") {
+                ws.send(JSON.stringify(["error:token"]));
             }
         }
+        ws.on("message", (message) => __awaiter(void 0, void 0, void 0, function* () {
+            const parsedMessage = JSON.parse(message.toString());
+            const instruction = parsedMessage[0];
+            const body = parsedMessage[1] || {};
+            if (instruction == "refresh:token" && body) {
+                try {
+                    yield multiplayer.addClient(ws, body);
+                }
+                catch (e) {
+                    if (e.message == "Token expired" ||
+                        e.message == "User not found") {
+                        ws.send(JSON.stringify(["error:token"]));
+                    }
+                }
+            }
+        }));
     }));
     app.listen(port, () => {
         console.log(`Server running at http://localhost:${port}`);
