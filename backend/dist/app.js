@@ -14,16 +14,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const database_1 = require("./database");
+const database_1 = require("./utils/database");
 const yup_1 = require("yup");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const token_1 = require("./utils/token");
+const express_ws_1 = __importDefault(require("express-ws"));
+const multiplayer_1 = require("./definitions/multiplayer");
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 dotenv_1.default.config();
-const app = (0, express_1.default)();
-app.use(express_1.default.json());
+const baseApp = (0, express_1.default)();
+const { app } = (0, express_ws_1.default)(baseApp);
 const port = process.env.PORT;
+app.use(express_1.default.json());
+app.use((0, cookie_parser_1.default)());
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const db = yield (0, database_1.database)();
+    const multiplayer = new multiplayer_1.Multiplayer(db);
     app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const users = yield db.all("SELECT * FROM User");
         res.json(users);
@@ -76,7 +82,7 @@ const port = process.env.PORT;
         }
         let hashedPassword = null;
         try {
-            const result = yield db.get(yield (0, database_1.sqlFromFile)("query", "GetUser"), {
+            const result = yield db.get(yield (0, database_1.sqlFromFile)("query", "GetUserByUsername"), {
                 ":username": body.username,
             });
             hashedPassword = result.PasswordHash;
@@ -101,6 +107,20 @@ const port = process.env.PORT;
         catch (e) {
             console.log(e.message);
             return res.sendStatus(400);
+        }
+    }));
+    app.ws("/multiplayer", (ws, req) => __awaiter(void 0, void 0, void 0, function* () {
+        if (!req.cookies.token) {
+            return ws.close();
+        }
+        try {
+            yield multiplayer.addClient(ws, req.cookies.token);
+        }
+        catch (e) {
+            if (e.message == "Token Expired") {
+                ws.send(JSON.stringify(["auth:expired"]));
+                return ws.close();
+            }
         }
     }));
     app.listen(port, () => {

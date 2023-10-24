@@ -3,5 +3,6 @@ CREATE TABLE IF NOT EXISTS OnlineGame (
   User1 TEXT,
   User2 TEXT,
   Outcome TEXT,
-  Board TEXT
+  Board TEXT,
+  Turn TEXT
 );

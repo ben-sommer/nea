@@ -1,4 +1,5 @@
 import { randomBytes } from "crypto";
+import { jsToSqlDate } from "./date";
 
 const validityWindow = 1000 * 60 * 60 * 24;
 
@@ -7,10 +8,7 @@ export const generateToken = () => {
 
     const now = new Date();
 
-    const expiry = new Date(now.getTime() + validityWindow)
-        .toISOString()
-        .slice(0, 19)
-        .replace("T", " ");
+    const expiry = jsToSqlDate(new Date(now.getTime() + validityWindow));
 
     return { token, expiry };
 };

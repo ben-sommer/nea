@@ -1,21 +1,25 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
-import { database, sqlFromFile } from "./database";
+import { database, sqlFromFile } from "./utils/database";
 import { string, object } from "yup";
-import { randomBytes } from "crypto";
 import bcrypt from "bcrypt";
 import { generateToken } from "./utils/token";
+import expressWebsocket from "express-ws";
+import { Multiplayer } from "./definitions/multiplayer";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
-const app: Express = express();
-
-app.use(express.json());
-
+const baseApp: Express = express();
+const { app } = expressWebsocket(baseApp);
 const port = process.env.PORT;
+app.use(express.json());
+app.use(cookieParser());
 
 (async () => {
     const db = await database();
+
+    const multiplayer = new Multiplayer(db);
 
     app.get("/", async (req: Request, res: Response) => {
         const users = await db.all("SELECT * FROM User");
@@ -79,9 +83,12 @@ const port = process.env.PORT;
         let hashedPassword = null;
 
         try {
-            const result = await db.get(await sqlFromFile("query", "GetUser"), {
-                ":username": body.username,
-            });
+            const result = await db.get(
+                await sqlFromFile("query", "GetUserByUsername"),
+                {
+                    ":username": body.username,
+                }
+            );
 
             hashedPassword = result.PasswordHash;
         } catch (e: any) {
@@ -111,6 +118,21 @@ const port = process.env.PORT;
         } catch (e: any) {
             console.log(e.message);
             return res.sendStatus(400);
+        }
+    });
+
+    app.ws("/multiplayer", async (ws, req) => {
+        if (!req.cookies.token) {
+            return ws.close();
+        }
+
+        try {
+            await multiplayer.addClient(ws, req.cookies.token);
+        } catch (e: any) {
+            if (e.message == "Token Expired") {
+                ws.send(JSON.stringify(["auth:expired"]));
+                return ws.close();
+            }
         }
     });
 

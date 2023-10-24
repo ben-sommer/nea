@@ -10,14 +10,16 @@ export const sqlFromFile = async (
     filename: string
 ) => {
     const sql = await readFile(
-        join(__dirname, "..", "sql", type, filename + ".sql")
+        join(__dirname, "..", "..", "sql", type, filename + ".sql")
     );
 
     return sql.toString();
 };
 
 const getDefinitions = async () => {
-    const files = await readdir(join(__dirname, "..", "sql", "definition"));
+    const files = await readdir(
+        join(__dirname, "..", "..", "sql", "definition")
+    );
 
     let sql = [];
 
