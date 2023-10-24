@@ -136,7 +136,7 @@ app.use(function (req, res, next) {
             const instruction = parsedMessage[0];
             const body = parsedMessage[1] || {};
 
-            if (instruction == "login:attempt" && body) {
+            if (instruction == "auth:login" && body) {
                 try {
                     await multiplayer.addClient(ws, body);
                 } catch (e: any) {
@@ -152,7 +152,7 @@ app.use(function (req, res, next) {
                             break;
                     }
 
-                    ws.send(JSON.stringify(["login:fail", error]));
+                    ws.send(JSON.stringify(["auth:login:error", error]));
                 }
             }
         });

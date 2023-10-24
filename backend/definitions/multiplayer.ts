@@ -38,7 +38,8 @@ export class Multiplayer {
             connection,
             user.Username,
             user.FirstName,
-            user.LastName
+            user.LastName,
+            this
         );
 
         // Remove any existing clients with the same username
@@ -48,14 +49,14 @@ export class Multiplayer {
 
         this.broadcastPlayers();
 
-        client.send("login:success", this.serializeClient(client));
+        client.send("auth:login:success", this.serializeClient(client));
 
         client.connection.on("message", (message: string) => {
             const parsedMessage = JSON.parse(message);
 
             const instruction = parsedMessage[0];
 
-            if (instruction == "login:logout") {
+            if (instruction == "auth:logout") {
                 this.removeClient(client.username, true);
             }
         });

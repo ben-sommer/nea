@@ -9,12 +9,20 @@ import SignIn from "@/components/SignIn";
 import { Player } from "@/types/player";
 import { useCookies } from "react-cookie";
 import PlayerList from "@/components/PlayerList";
+import toast from "react-hot-toast";
+import { IoInformationCircle } from "react-icons/io5";
 
 export default function OnlineMultiplayer() {
     const [signedIn, setSignedIn] = useState(true);
     const [signInError, setSignInError] = useState("");
     const [players, setPlayers] = useState<Player[]>([]);
     const [self, setSelf] = useState<Player | null>(null);
+    const [invitedBy, setInvitedBy] = useState<{ [username: string]: boolean }>(
+        {}
+    );
+    const [sentInvites, setSentInvites] = useState<{
+        [username: string]: boolean;
+    }>({});
 
     const [cookies, setCookie, removeCookie] = useCookies(["token"]);
 
@@ -33,7 +41,7 @@ export default function OnlineMultiplayer() {
                 const token = cookies.token;
 
                 if (token) {
-                    sendMessage(JSON.stringify(["login:attempt", token]));
+                    sendMessage(JSON.stringify(["auth:login", token]));
                 } else {
                     setSignedIn(false);
                 }
@@ -43,7 +51,7 @@ export default function OnlineMultiplayer() {
                     const parsedMessage = JSON.parse(message.data);
 
                     const instruction = parsedMessage[0];
-                    const body = parsedMessage[1] || {};
+                    const body = parsedMessage[1] || "";
 
                     console.log({
                         instruction,
@@ -51,16 +59,40 @@ export default function OnlineMultiplayer() {
                     });
 
                     switch (instruction) {
-                        case "login:fail":
+                        case "auth:login:error":
                             setSignedIn(false);
                             setSignInError(body);
                             break;
-                        case "login:success":
+                        case "auth:login:success":
                             setSignedIn(true);
                             setSelf(body);
                             break;
                         case "info:players":
                             setPlayers(body);
+                            break;
+                        case "game:send-invite:error":
+                            toast.error(
+                                <span>
+                                    Error inviting <b>{body}</b> to a game
+                                </span>
+                            );
+                            break;
+                        case "game:invited":
+                            toast(
+                                <span>
+                                    <b>{body}</b> invited you to a game
+                                </span>,
+                                {
+                                    icon: (
+                                        <IoInformationCircle className="min-h-[26px] min-w-[26px] mt-[2px] -mr-[4px] -ml-[2px] align-middle text-indigo-500" />
+                                    ),
+                                }
+                            );
+
+                            setInvitedBy((invitedBy) => ({
+                                ...invitedBy,
+                                [body]: true,
+                            }));
                             break;
                     }
                 } catch (e: any) {
@@ -69,6 +101,19 @@ export default function OnlineMultiplayer() {
             },
         }
     );
+
+    const onInvite = (username: string) => {
+        sendMessage(JSON.stringify(["game:send-invite", username]));
+
+        setSentInvites((sentInvites) => ({
+            ...sentInvites,
+            [username]: true,
+        }));
+    };
+
+    const onAccept = (username: string) => {
+        sendMessage(JSON.stringify(["game:accept-invite", username]));
+    };
 
     const game = proxy(new Game());
 
@@ -90,7 +135,7 @@ export default function OnlineMultiplayer() {
                                     removeCookie("token");
                                     setSignedIn(false);
                                     sendMessage(
-                                        JSON.stringify(["login:logout"])
+                                        JSON.stringify(["auth:logout"])
                                     );
                                 }}
                                 className="px-4 py-2 rounded-md border border-gray-300 bg-white shadow-md text-sm font-medium outline-none focus:ring-2 ring-indigo-500"
@@ -98,14 +143,21 @@ export default function OnlineMultiplayer() {
                                 Log Out
                             </button>
                             <p>Online players ({players.length}):</p>
-                            <PlayerList players={players} self={self} />
+                            <PlayerList
+                                onInvite={onInvite}
+                                onAccept={onAccept}
+                                players={players}
+                                self={self}
+                                invitedBy={invitedBy}
+                                sentInvites={sentInvites}
+                            />
                         </div>
                     )}
                 </>
             ) : (
                 <SignIn
                     onSuccess={(token) => {
-                        sendMessage(JSON.stringify(["login:attempt", token]));
+                        sendMessage(JSON.stringify(["auth:login", token]));
                     }}
                     signInError={signInError}
                 />

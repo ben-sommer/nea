@@ -3,9 +3,17 @@ import { Player } from "@/types/player";
 export default function PlayerList({
     players,
     self,
+    onInvite,
+    onAccept,
+    invitedBy,
+    sentInvites,
 }: {
     players: Player[];
     self: Player | null;
+    onInvite: (username: string) => void;
+    onAccept: (username: string) => void;
+    invitedBy: { [username: string]: boolean };
+    sentInvites: { [username: string]: boolean };
 }) {
     return (
         <div className="flex flex-col gap-2">
@@ -24,13 +32,36 @@ export default function PlayerList({
                             {player.firstName} {player.lastName} (
                             {player.username})
                         </p>
-                        {self && self.username == player.username && (
-                            // <p className="text-indigo-500 flex items-center justify-center font-semibold">
-                            //     You
-                            // </p>
-                            <p className="bg-indigo-500 h-8 px-3 flex items-center justify-center text-white text-sm rounded-full font-semibold">
-                                You
-                            </p>
+                        {self && (
+                            <>
+                                {self.username != player.username && (
+                                    <>
+                                        {invitedBy[player.username] ? (
+                                            <button
+                                                onClick={() =>
+                                                    onAccept(player.username)
+                                                }
+                                                className="px-3 py-1 rounded-md border border-gray-300 bg-white shadow-md text-sm font-medium outline-none focus:ring-2 ring-indigo-500"
+                                            >
+                                                Accept Invite
+                                            </button>
+                                        ) : sentInvites[player.username] ? (
+                                            <p className="text-indigo-500 font-semibold text-sm">
+                                                Invite Sent
+                                            </p>
+                                        ) : (
+                                            <button
+                                                onClick={() =>
+                                                    onInvite(player.username)
+                                                }
+                                                className="px-3 py-1 rounded-md border border-gray-300 bg-white shadow-md text-sm font-medium outline-none focus:ring-2 ring-indigo-500"
+                                            >
+                                                Invite
+                                            </button>
+                                        )}
+                                    </>
+                                )}
+                            </>
                         )}
                     </div>
                 ))}
