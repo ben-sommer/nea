@@ -98,6 +98,8 @@ export class Multiplayer {
             firstName: client.firstName,
             lastName: client.lastName,
             username: client.username,
+            invitedBy: client.invitedBy,
+            sentInvites: client.sentInvites,
         };
     }
 }

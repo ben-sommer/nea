@@ -8,7 +8,8 @@ export class Client {
     lastName: string;
     username: string;
     multiplayer: Multiplayer;
-    invitedBy: string[];
+    invitedBy: { [username: string]: boolean };
+    sentInvites: { [username: string]: boolean };
 
     constructor(
         connection: ws,
@@ -22,7 +23,18 @@ export class Client {
         this.lastName = lastName;
         this.username = username;
         this.multiplayer = multiplayer;
-        this.invitedBy = [];
+        this.invitedBy = {};
+        this.sentInvites = {};
+
+        this.multiplayer.clients.forEach((client) => {
+            if (client.invitedBy[this.username]) {
+                this.sentInvites[client.username] = true;
+            }
+
+            if (client.sentInvites[this.username]) {
+                this.invitedBy[client.username] = true;
+            }
+        });
 
         this.connection.on("message", (message: string) => {
             const parsedMessage = JSON.parse(message.toString());
@@ -38,7 +50,8 @@ export class Client {
                         return this.send("game:send-invite:error", body);
                     }
 
-                    invitee.invitedBy.push(this.username);
+                    invitee.invitedBy[this.username] = true;
+                    this.sentInvites[invitee.username] = true;
 
                     invitee.send("game:invited", this.username);
 

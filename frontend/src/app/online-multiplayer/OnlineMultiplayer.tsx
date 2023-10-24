@@ -66,6 +66,8 @@ export default function OnlineMultiplayer() {
                         case "auth:login:success":
                             setSignedIn(true);
                             setSelf(body);
+                            setInvitedBy(body.invitedBy);
+                            setSentInvites(body.sentInvites);
                             break;
                         case "info:players":
                             setPlayers(body);
