@@ -8,6 +8,7 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 import SignIn from "@/components/SignIn";
 import { Player } from "@/types/player";
 import { useCookies } from "react-cookie";
+import PlayerList from "@/components/PlayerList";
 
 export default function OnlineMultiplayer() {
     const [signedIn, setSignedIn] = useState(true);
@@ -88,27 +89,22 @@ export default function OnlineMultiplayer() {
                                 onClick={() => {
                                     removeCookie("token");
                                     setSignedIn(false);
+                                    sendMessage(
+                                        JSON.stringify(["login:logout"])
+                                    );
                                 }}
                                 className="px-4 py-2 rounded-md border border-gray-300 bg-white shadow-md text-sm font-medium outline-none focus:ring-2 ring-indigo-500"
                             >
                                 Log Out
                             </button>
                             <p>Online players ({players.length}):</p>
-                            <div>
-                                {players.map((player) => (
-                                    <p key={player.username}>
-                                        {player.firstName} {player.lastName} (
-                                        {player.username})
-                                    </p>
-                                ))}
-                            </div>
+                            <PlayerList players={players} self={self} />
                         </div>
                     )}
                 </>
             ) : (
                 <SignIn
                     onSuccess={(token) => {
-                        console.log("sending token");
                         sendMessage(JSON.stringify(["login:attempt", token]));
                     }}
                     signInError={signInError}

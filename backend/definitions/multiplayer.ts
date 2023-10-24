@@ -50,16 +50,26 @@ export class Multiplayer {
 
         client.send("login:success", this.serializeClient(client));
 
-        connection.on("close", () => {
+        client.connection.on("message", (message: string) => {
+            const parsedMessage = JSON.parse(message);
+
+            const instruction = parsedMessage[0];
+
+            if (instruction == "login:logout") {
+                this.removeClient(client.username, true);
+            }
+        });
+
+        client.connection.on("close", () => {
             this.removeClient(client.username);
         });
     }
 
-    removeClient(username: string) {
+    removeClient(username: string, keepOpen?: boolean) {
         const client = this.getClient(username);
 
         if (client) {
-            client.connection.close();
+            if (!keepOpen) client.connection.close();
 
             this.clients = this.clients.filter(
                 (client) => client.username !== username

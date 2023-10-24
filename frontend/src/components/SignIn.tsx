@@ -61,15 +61,9 @@ export default function SignIn({
 
             const { token } = response.data;
 
-            console.log("a", token);
-
             setCookie("token", token);
 
-            console.log("b");
-
             setError("");
-
-            console.log("c");
 
             onSuccess(token);
         } catch (e: any) {
