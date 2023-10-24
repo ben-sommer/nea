@@ -2,7 +2,7 @@
 
 import Board from "@/components/Board";
 import { Game } from "@/definitions/game";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { proxy } from "valtio";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import SignIn from "@/components/SignIn";
@@ -17,9 +17,17 @@ export default function OnlineMultiplayer() {
 
     const [cookies, setCookie, removeCookie] = useCookies(["token"]);
 
+    const didUnmount = useRef(false);
+
     const { sendMessage, readyState } = useWebSocket(
         "ws://localhost:3010/multiplayer",
         {
+            reconnectInterval: (attemptNumber) => {
+                return Math.min(Math.pow(2, attemptNumber) * 1000, 10000);
+            },
+            shouldReconnect: (event) => {
+                return didUnmount.current == false;
+            },
             onOpen: () => {
                 const token = cookies.token;
 
