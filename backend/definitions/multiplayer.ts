@@ -38,18 +38,12 @@ export class Multiplayer {
             user.LastName
         );
 
-        client.send(
-            "user:players",
-            this.clients.map((client) => ({
-                name: `${client.firstName} ${client.lastName}`,
-                username: client.username,
-            }))
-        );
-
         // Remove any existing clients with the same account
         this.removeClient(client.username);
 
         this.clients.push(client);
+
+        this.broadcastPlayers();
 
         connection.on("close", () => {
             this.removeClient(client.username);
@@ -66,9 +60,26 @@ export class Multiplayer {
         this.clients = this.clients.filter(
             (client) => client.username !== username
         );
+
+        this.broadcastPlayers();
     }
 
     getClient(username: string) {
         return this.clients.find((client) => client.username == username);
+    }
+
+    broadcastPlayers() {
+        this.clients.forEach((client) => {
+            client.send(
+                "user:players",
+                this.clients
+                    .filter((c) => c.username != client.username)
+                    .map((c) => ({
+                        firstName: c.firstName,
+                        lastName: c.lastName,
+                        username: c.username,
+                    }))
+            );
+        });
     }
 }

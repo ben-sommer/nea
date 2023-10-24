@@ -31,13 +31,10 @@ class Multiplayer {
                 throw new Error("Token expired");
             }
             const client = new client_1.Client(connection, user.Username, user.FirstName, user.LastName);
-            client.send("user:players", this.clients.map((client) => ({
-                name: `${client.firstName} ${client.lastName}`,
-                username: client.username,
-            })));
             // Remove any existing clients with the same account
             this.removeClient(client.username);
             this.clients.push(client);
+            this.broadcastPlayers();
             connection.on("close", () => {
                 this.removeClient(client.username);
             });
@@ -49,9 +46,21 @@ class Multiplayer {
             client.connection.close();
         }
         this.clients = this.clients.filter((client) => client.username !== username);
+        this.broadcastPlayers();
     }
     getClient(username) {
         return this.clients.find((client) => client.username == username);
+    }
+    broadcastPlayers() {
+        this.clients.forEach((client) => {
+            client.send("user:players", this.clients
+                .filter((c) => c.username != client.username)
+                .map((c) => ({
+                firstName: c.firstName,
+                lastName: c.lastName,
+                username: c.username,
+            })));
+        });
     }
 }
 exports.Multiplayer = Multiplayer;
