@@ -8,6 +8,8 @@
 /build
 /dist
 
+db.sqlite
+
 # misc
 .DS_Store
 *.pem
