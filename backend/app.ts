@@ -37,9 +37,7 @@ app.use(function (req, res, next) {
         const schema = object({
             username: string()
                 .required()
-                .min(3)
-                .max(16)
-                .matches(/^(?=[a-zA-Z0-9._]{8,20}$)(?!.*[_.]{2})[^_.].*[^_.]$/),
+                .matches(/^(?=[a-zA-Z0-9._]{3,20}$)(?!.*[_.]{2})[^_.].*[^_.]$/),
             firstName: string().required().min(1).max(256),
             lastName: string().required().min(1).max(256),
             password: string().required().min(8).max(16),
@@ -103,7 +101,7 @@ app.use(function (req, res, next) {
             hashedPassword = result.PasswordHash;
         } catch (e: any) {
             console.log(e.message);
-            return res.sendStatus(400);
+            return res.status(400).send("Please check your login information");
         }
 
         const { token, expiry } = generateToken();
@@ -132,34 +130,29 @@ app.use(function (req, res, next) {
     });
 
     app.ws("/multiplayer", async (ws, req) => {
-        if (!req.cookies.token) {
-            ws.send(JSON.stringify(["error:token"]));
-        }
-
-        try {
-            await multiplayer.addClient(ws, req.cookies.token);
-        } catch (e: any) {
-            if (e.message == "Token expired" || e.message == "User not found") {
-                ws.send(JSON.stringify(["error:token"]));
-            }
-        }
-
         ws.on("message", async (message) => {
             const parsedMessage = JSON.parse(message.toString());
 
             const instruction = parsedMessage[0];
             const body = parsedMessage[1] || {};
 
-            if (instruction == "refresh:token" && body) {
+            if (instruction == "login:attempt" && body) {
                 try {
                     await multiplayer.addClient(ws, body);
                 } catch (e: any) {
-                    if (
-                        e.message == "Token expired" ||
-                        e.message == "User not found"
-                    ) {
-                        ws.send(JSON.stringify(["error:token"]));
+                    let error = "An error occurred - please try again";
+
+                    switch (e.message) {
+                        case "User not found":
+                            error = "Please check your login information";
+                            break;
+                        case "Token expired":
+                            error =
+                                "Your session has expired - please login again";
+                            break;
                     }
+
+                    ws.send(JSON.stringify(["login:fail", error]));
                 }
             }
         });

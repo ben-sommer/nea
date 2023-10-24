@@ -4,8 +4,10 @@ import { useCookies } from "react-cookie";
 
 export default function SignIn({
     onSuccess,
+    signInError,
 }: {
     onSuccess: (token: string) => void;
+    signInError: string;
 }) {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -59,16 +61,23 @@ export default function SignIn({
 
             const { token } = response.data;
 
+            console.log("a", token);
+
             setCookie("token", token);
+
+            console.log("b");
 
             setError("");
 
+            console.log("c");
+
             onSuccess(token);
-        } catch (e) {
+        } catch (e: any) {
+            console.log(e);
             setError(
                 isRegistering
                     ? "Please choose another username"
-                    : "Please check your login information"
+                    : signInError || e.response.data || ""
             );
         }
     };

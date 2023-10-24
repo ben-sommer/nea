@@ -1,7 +1,8 @@
 import { randomBytes } from "crypto";
 import { jsToSqlDate } from "./date";
 
-const validityWindow = 1000 * 60 * 60 * 24;
+// const validityWindow = 1000 * 60 * 60 * 24;
+const validityWindow = 1000 * 60;
 
 export const generateToken = () => {
     const token = randomBytes(256).toString("base64");

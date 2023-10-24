@@ -41,12 +41,14 @@ export class Multiplayer {
             user.LastName
         );
 
-        // Remove any existing clients with the same account
+        // Remove any existing clients with the same username
         this.removeClient(client.username);
 
         this.clients.push(client);
 
         this.broadcastPlayers();
+
+        client.send("login:success", this.serializeClient(client));
 
         connection.on("close", () => {
             this.removeClient(client.username);
@@ -58,13 +60,13 @@ export class Multiplayer {
 
         if (client) {
             client.connection.close();
+
+            this.clients = this.clients.filter(
+                (client) => client.username !== username
+            );
+
+            this.broadcastPlayers();
         }
-
-        this.clients = this.clients.filter(
-            (client) => client.username !== username
-        );
-
-        this.broadcastPlayers();
     }
 
     getClient(username: string) {
@@ -74,15 +76,17 @@ export class Multiplayer {
     broadcastPlayers() {
         this.clients.forEach((client) => {
             client.send(
-                "user:players",
-                this.clients
-                    .filter((c) => c.username != client.username)
-                    .map((c) => ({
-                        firstName: c.firstName,
-                        lastName: c.lastName,
-                        username: c.username,
-                    }))
+                "info:players",
+                this.clients.map((c) => this.serializeClient(c))
             );
         });
+    }
+
+    serializeClient(client: Client) {
+        return {
+            firstName: client.firstName,
+            lastName: client.lastName,
+            username: client.username,
+        };
     }
 }

@@ -11,13 +11,24 @@ import { useCookies } from "react-cookie";
 
 export default function OnlineMultiplayer() {
     const [signedIn, setSignedIn] = useState(true);
+    const [signInError, setSignInError] = useState("");
     const [players, setPlayers] = useState<Player[]>([]);
+    const [self, setSelf] = useState<Player | null>(null);
 
     const [cookies, setCookie, removeCookie] = useCookies(["token"]);
 
     const { sendMessage, readyState } = useWebSocket(
         "ws://localhost:3010/multiplayer",
         {
+            onOpen: () => {
+                const token = cookies.token;
+
+                if (token) {
+                    sendMessage(JSON.stringify(["login:attempt", token]));
+                } else {
+                    setSignedIn(false);
+                }
+            },
             onMessage: (message) => {
                 try {
                     const parsedMessage = JSON.parse(message.data);
@@ -31,10 +42,15 @@ export default function OnlineMultiplayer() {
                     });
 
                     switch (instruction) {
-                        case "error:token":
+                        case "login:fail":
                             setSignedIn(false);
+                            setSignInError(body);
                             break;
-                        case "user:players":
+                        case "login:success":
+                            setSignedIn(true);
+                            setSelf(body);
+                            break;
+                        case "info:players":
                             setPlayers(body);
                             break;
                     }
@@ -84,9 +100,10 @@ export default function OnlineMultiplayer() {
             ) : (
                 <SignIn
                     onSuccess={(token) => {
-                        setSignedIn(true);
-                        sendMessage(JSON.stringify(["refresh:token", token]));
+                        console.log("sending token");
+                        sendMessage(JSON.stringify(["login:attempt", token]));
                     }}
+                    signInError={signInError}
                 />
             )}
         </div>
