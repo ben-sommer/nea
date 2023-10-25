@@ -1,6 +1,7 @@
 import { v4 as uuid } from "uuid";
 import ws from "ws";
 import { Multiplayer } from "./multiplayer";
+import { OnlineGame } from "./onlineGame";
 
 export class Client {
     connection: ws;
@@ -44,21 +45,35 @@ export class Client {
 
             switch (instruction) {
                 case "game:send-invite":
-                    const invitee = this.multiplayer.getClient(body);
+                    {
+                        const invitee = this.multiplayer.getClient(body);
 
-                    if (!invitee) {
-                        return this.send("game:send-invite:error", body);
+                        if (!invitee) {
+                            return this.send("game:send-invite:error", body);
+                        }
+
+                        invitee.invitedBy[this.username] = true;
+                        this.sentInvites[invitee.username] = true;
+
+                        invitee.send("game:invited", this.username);
                     }
-
-                    invitee.invitedBy[this.username] = true;
-                    this.sentInvites[invitee.username] = true;
-
-                    invitee.send("game:invited", this.username);
-
                     break;
-                // case "game:accept-invite":
-                //     this.multiplayer.games.push
-                //     break;
+                case "game:accept-invite":
+                    {
+                        const invitee = this.multiplayer.getClient(body);
+
+                        if (!invitee) {
+                            return this.send(
+                                "game:accept-invite:error",
+                                invitee
+                            );
+                        }
+
+                        const game = new OnlineGame([invitee, this]);
+
+                        this.multiplayer.games.push(game);
+                    }
+                    break;
             }
         });
     }

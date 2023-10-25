@@ -17,6 +17,7 @@ export default function OnlineMultiplayer() {
     const [signInError, setSignInError] = useState("");
     const [players, setPlayers] = useState<Player[]>([]);
     const [self, setSelf] = useState<Player | null>(null);
+    const [inGame, setInGame] = useState(false);
     const [invitedBy, setInvitedBy] = useState<{ [username: string]: boolean }>(
         {}
     );
@@ -27,6 +28,8 @@ export default function OnlineMultiplayer() {
     const [cookies, setCookie, removeCookie] = useCookies(["token"]);
 
     const didUnmount = useRef(false);
+
+    const [game, setGame] = useState<Game | null>(null);
 
     const { sendMessage, readyState } = useWebSocket(
         "ws://localhost:3010/multiplayer",
@@ -96,6 +99,23 @@ export default function OnlineMultiplayer() {
                                 [body]: true,
                             }));
                             break;
+                        case "game:state":
+                            const game = new Game();
+
+                            game.board = body.board;
+                            game.blackName =
+                                body.blackName == self?.username
+                                    ? "You"
+                                    : body.blackName;
+                            game.whiteName = body.whiteName =
+                                body.whiteName == self?.username
+                                    ? "You"
+                                    : body.whiteName;
+                            game.turn = body.turn;
+
+                            setGame(proxy(game));
+                            setInGame(true);
+                            break;
                     }
                 } catch (e: any) {
                     console.log(e.message);
@@ -116,8 +136,6 @@ export default function OnlineMultiplayer() {
     const onAccept = (username: string) => {
         sendMessage(JSON.stringify(["game:accept-invite", username]));
     };
-
-    const game = proxy(new Game());
 
     return (
         <div className="flex flex-col gap-4 items-center">
@@ -144,15 +162,27 @@ export default function OnlineMultiplayer() {
                             >
                                 Log Out
                             </button>
-                            <p>Online players ({players.length}):</p>
-                            <PlayerList
-                                onInvite={onInvite}
-                                onAccept={onAccept}
-                                players={players}
-                                self={self}
-                                invitedBy={invitedBy}
-                                sentInvites={sentInvites}
-                            />
+                            {inGame && game ? (
+                                <Board
+                                    game={game}
+                                    completionButtonText={"Back to player list"}
+                                    completionButtonOnClick={() =>
+                                        setInGame(false)
+                                    }
+                                />
+                            ) : (
+                                <>
+                                    <p>Online players ({players.length}):</p>
+                                    <PlayerList
+                                        onInvite={onInvite}
+                                        onAccept={onAccept}
+                                        players={players}
+                                        self={self}
+                                        invitedBy={invitedBy}
+                                        sentInvites={sentInvites}
+                                    />
+                                </>
+                            )}
                         </div>
                     )}
                 </>
