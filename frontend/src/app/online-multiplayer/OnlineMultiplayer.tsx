@@ -11,6 +11,7 @@ import { useCookies } from "react-cookie";
 import PlayerList from "@/components/PlayerList";
 import toast from "react-hot-toast";
 import { IoInformationCircle } from "react-icons/io5";
+import { OnlineGame } from "@/definitions/onlineGame";
 
 export default function OnlineMultiplayer() {
     const [signedIn, setSignedIn] = useState(true);
@@ -100,15 +101,16 @@ export default function OnlineMultiplayer() {
                             }));
                             break;
                         case "game:state":
-                            const game = new Game();
+                            const game = new OnlineGame(sendMessage);
+                            setSelf(body.self);
 
                             game.board = body.board;
                             game.blackName =
-                                body.blackName == self?.username
+                                body.blackName == body.self.username
                                     ? "You"
                                     : body.blackName;
                             game.whiteName = body.whiteName =
-                                body.whiteName == self?.username
+                                body.whiteName == body.self.username
                                     ? "You"
                                     : body.whiteName;
                             game.turn = body.turn;

@@ -4,10 +4,11 @@ import ws from "ws";
 import { sqlFromFile } from "../utils/database";
 import { sqlToJsDate } from "../utils/date";
 import { Game } from "./game";
+import { OnlineGame } from "./onlineGame";
 
 export class Multiplayer {
     clients: Client[];
-    games: Game[];
+    games: OnlineGame[];
     db: Database;
 
     constructor(db: Database) {
@@ -51,6 +52,17 @@ export class Multiplayer {
 
         client.send("auth:login:success", this.serializeClient(client));
 
+        for (const game of this.games) {
+            if (game.clients.find((user) => user.username == client.username)) {
+                if (
+                    (client.username == game.blackName && game.white) ||
+                    (client.username == game.whiteName && game.black)
+                ) {
+                    game.reconnect(client);
+                }
+            }
+        }
+
         client.connection.on("message", (message: string) => {
             const parsedMessage = JSON.parse(message);
 
@@ -75,6 +87,25 @@ export class Multiplayer {
             this.clients = this.clients.filter(
                 (client) => client.username !== username
             );
+
+            // for (const game of this.games) {
+            //     if (
+            //         game.clients.find(
+            //             (user) => user.username == client.username
+            //         )
+            //     ) {
+            //         if (client.username == game.blackName && game.white) {
+            //             game.black = null;
+            //             game.clients = [game.white];
+            //         } else if (
+            //             client.username == game.whiteName &&
+            //             game.black
+            //         ) {
+            //             game.white = null;
+            //             game.clients = [game.black];
+            //         }
+            //     }
+            // }
 
             this.broadcastPlayers();
         }

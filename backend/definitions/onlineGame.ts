@@ -2,8 +2,8 @@ import { Client } from "./client";
 import { Game } from "./game";
 
 export class OnlineGame extends Game {
-    black: Client;
-    white: Client;
+    black: Client | null;
+    white: Client | null;
     clients: Client[];
 
     constructor(clients: Client[]) {
@@ -21,19 +21,70 @@ export class OnlineGame extends Game {
         this.blackName = this.black.username;
         this.whiteName = this.white.username;
 
-        this.clients = clients;
+        this.clients = [this.black, this.white];
 
         this.broadcastGame();
+
+        for (const client of this.clients) {
+            this.bindListeners(client);
+        }
+    }
+
+    bindListeners(client: Client) {
+        client.connection.on("message", (message) => {
+            const parsedMessage = JSON.parse(message.toString());
+
+            const instruction = parsedMessage[0];
+            const body = parsedMessage[1] || {};
+
+            switch (instruction) {
+                case "game:move":
+                    console.log({
+                        username: client.username,
+                        turn: this.turn,
+                        blackName: this.blackName,
+                        whiteName: this.whiteName,
+                    });
+                    if (
+                        client.username ==
+                        (this.turn == "black" ? this.blackName : this.whiteName)
+                    ) {
+                        const normal = this.handleSquareClick(body.x, body.y);
+
+                        if (!normal) {
+                            this.sendAll("game:over");
+                        }
+                    } else {
+                        client.send("game:move:error", "Not your turn");
+                    }
+
+                    this.broadcastGame();
+
+                    client.send("game:state", {
+                        ...this.serializeState(),
+                        self: client.multiplayer.serializeClient(client),
+                    });
+
+                    break;
+            }
+        });
     }
 
     sendAll(event: string, body?: any) {
         for (const client of this.clients) {
-            client.send(event, body);
+            client.send(event, typeof body == "function" ? body(client) : body);
         }
     }
 
     broadcastGame() {
-        this.sendAll("game:state", this.serializeState());
+        console.log(
+            "Sending game state to:",
+            this.clients.map((x) => x.username)
+        );
+        this.sendAll("game:state", (client: Client) => ({
+            ...this.serializeState(),
+            self: client.multiplayer.serializeClient(client),
+        }));
     }
 
     serializeState() {
@@ -43,5 +94,18 @@ export class OnlineGame extends Game {
             whiteName: this.whiteName,
             blackName: this.blackName,
         };
+    }
+
+    reconnect(client: Client) {
+        if (client.username == this.blackName && this.white) {
+            this.clients = [client, this.white];
+        } else if (client.username == this.whiteName && this.black) {
+            this.clients = [this.black, client];
+        } else {
+            return false;
+        }
+
+        this.bindListeners(client);
+        this.broadcastGame();
     }
 }
