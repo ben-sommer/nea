@@ -105,6 +105,7 @@ export default function OnlineMultiplayer() {
                             setSelf(body.self);
 
                             game.board = body.board;
+                            game.finished = body.finished;
                             game.blackName =
                                 body.blackName == body.self.username
                                     ? "You"
@@ -117,6 +118,9 @@ export default function OnlineMultiplayer() {
 
                             setGame(proxy(game));
                             setInGame(true);
+                            break;
+                        case "game:move:error":
+                            toast.error(body || "Error making move");
                             break;
                     }
                 } catch (e: any) {

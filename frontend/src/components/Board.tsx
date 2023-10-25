@@ -152,7 +152,14 @@ export default function Board({
                         <span className="text-2xl">
                             {snap.winner == "draw"
                                 ? "Draw"
-                                : `${snap.getNameFromColor(snap.winner)} wins!`}
+                                : `${
+                                      snap.getNameFromColor(snap.winner) ==
+                                      "You"
+                                          ? "You win"
+                                          : `${snap.getNameFromColor(
+                                                snap.winner
+                                            )} wins!`
+                                  }`}
                         </span>
                         <span
                             onClick={completionButtonOnClick}

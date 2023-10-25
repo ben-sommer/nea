@@ -54,11 +54,6 @@ export class OnlineGame extends Game {
 
                     this.broadcastGame();
 
-                    client.send("game:state", {
-                        ...this.serializeState(),
-                        self: client.multiplayer.serializeClient(client),
-                    });
-
                     break;
             }
         });
@@ -83,6 +78,7 @@ export class OnlineGame extends Game {
             board: this.board,
             whiteName: this.whiteName,
             blackName: this.blackName,
+            finished: this.finished,
         };
     }
 
