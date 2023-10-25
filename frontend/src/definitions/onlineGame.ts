@@ -3,10 +3,13 @@ import { Game } from "./game";
 
 export class OnlineGame extends Game {
     sendMessage: (event: string, body?: any) => void;
+    forfeitedBy: string | null;
+
     constructor(sendMessage: (event: string, body?: any) => void) {
         super();
 
         this.sendMessage = sendMessage;
+        this.forfeitedBy = null;
     }
 
     handleSquareClick(x: number, y: number): boolean {

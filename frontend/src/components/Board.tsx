@@ -1,6 +1,7 @@
 "use client";
 
 import { Game } from "@/definitions/game";
+import { OnlineGame } from "@/definitions/onlineGame";
 import { BoardState, Square } from "@/types/game";
 import { useEffect, useState } from "react";
 import { useSnapshot } from "valtio";
@@ -47,7 +48,7 @@ const Counter = ({ color }: { color: Square }) => {
     );
 };
 
-const Scores = ({ game }: { game: Game }) => {
+const Scores = ({ game }: { game: OnlineGame }) => {
     const snap = useSnapshot(game);
 
     return (
@@ -86,10 +87,12 @@ export default function Board({
     game,
     completionButtonText,
     completionButtonOnClick,
+    self,
 }: {
-    game: Game;
+    game: OnlineGame;
     completionButtonText: string;
     completionButtonOnClick: () => void;
+    self?: any;
 }) {
     useEffect(() => {
         // @ts-ignore
@@ -146,11 +149,17 @@ export default function Board({
                     ))}
                 <ColumnLabels />
             </div>
-            {snap.finished && (
+            {(snap.finished || snap.forfeitedBy) && (
                 <div className="absolute top-0 text-center w-full mt-[12.5rem]">
                     <p className="font-semibold bg-white flex flex-col w-64 mx-auto gap-2 rounded-md border-gray-300 border shadow-md px-4 py-2">
                         <span className="text-2xl">
-                            {snap.winner == "draw"
+                            {snap.forfeitedBy && self
+                                ? `${
+                                      snap.forfeitedBy == self.username
+                                          ? "You"
+                                          : snap.forfeitedBy
+                                  } forfeited`
+                                : snap.winner == "draw"
                                 ? "Draw"
                                 : `${
                                       snap.getNameFromColor(snap.winner) ==

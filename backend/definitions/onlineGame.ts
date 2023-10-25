@@ -76,6 +76,15 @@ export class OnlineGame extends Game {
                     this.broadcastGame();
 
                     break;
+                case "game:forfeit":
+                    this.sendAll("game:forfeited", client.username);
+                    this.clients[0].multiplayer.removeGame(
+                        this.black,
+                        this.white
+                    );
+                    this.clients[0].multiplayer.broadcastPlayers();
+
+                    break;
             }
         });
     }

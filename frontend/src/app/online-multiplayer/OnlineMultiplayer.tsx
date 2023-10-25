@@ -30,7 +30,7 @@ export default function OnlineMultiplayer() {
 
     const didUnmount = useRef(false);
 
-    const [game, setGame] = useState<Game | null>(null);
+    const [game, setGame] = useState<OnlineGame | null>(null);
 
     const { sendMessage, readyState } = useWebSocket(
         "ws://localhost:3010/multiplayer",
@@ -74,6 +74,7 @@ export default function OnlineMultiplayer() {
                             setSentInvites(body.sentInvites);
                             break;
                         case "info:players":
+                            console.log({ players: body });
                             setPlayers(body);
                             break;
                         case "game:send-invite:error":
@@ -101,26 +102,41 @@ export default function OnlineMultiplayer() {
                             }));
                             break;
                         case "game:state":
-                            const game = new OnlineGame(sendMessage);
-                            setSelf(body.self);
+                            {
+                                const game = new OnlineGame(sendMessage);
+                                setSelf(body.self);
 
-                            game.board = body.board;
-                            game.finished = body.finished;
-                            game.blackName =
-                                body.blackName == body.self.username
-                                    ? "You"
-                                    : body.blackName;
-                            game.whiteName = body.whiteName =
-                                body.whiteName == body.self.username
-                                    ? "You"
-                                    : body.whiteName;
-                            game.turn = body.turn;
+                                game.board = body.board;
+                                game.finished = body.finished;
+                                game.blackName =
+                                    body.blackName == body.self.username
+                                        ? "You"
+                                        : body.blackName;
+                                game.whiteName = body.whiteName =
+                                    body.whiteName == body.self.username
+                                        ? "You"
+                                        : body.whiteName;
+                                game.turn = body.turn;
 
-                            setGame(proxy(game));
-                            setInGame(true);
+                                setGame(proxy(game));
+                                setInGame(true);
+                            }
                             break;
                         case "game:move:error":
                             toast.error(body || "Error making move");
+                            break;
+                        case "game:forfeited":
+                            if (game) {
+                                const newGame = new OnlineGame(sendMessage);
+                                newGame.forfeitedBy = body;
+                                newGame.board = game.board;
+                                newGame.finished = true;
+                                newGame.blackName = game.blackName;
+                                newGame.whiteName = game.whiteName;
+                                newGame.turn = game.turn;
+
+                                setGame(proxy(newGame));
+                            }
                             break;
                     }
                 } catch (e: any) {
@@ -168,6 +184,18 @@ export default function OnlineMultiplayer() {
                             >
                                 Log Out
                             </button>
+                            {inGame && (
+                                <button
+                                    onClick={() => {
+                                        sendMessage(
+                                            JSON.stringify(["game:forfeit"])
+                                        );
+                                    }}
+                                    className="px-4 py-2 rounded-md border border-gray-300 bg-white shadow-md text-sm font-medium outline-none focus:ring-2 ring-indigo-500"
+                                >
+                                    Forfeit
+                                </button>
+                            )}
                             {inGame && game ? (
                                 <Board
                                     game={game}
@@ -175,6 +203,7 @@ export default function OnlineMultiplayer() {
                                     completionButtonOnClick={() =>
                                         setInGame(false)
                                     }
+                                    self={self}
                                 />
                             ) : (
                                 <>
