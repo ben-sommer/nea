@@ -39,12 +39,6 @@ export class OnlineGame extends Game {
 
             switch (instruction) {
                 case "game:move":
-                    console.log({
-                        username: client.username,
-                        turn: this.turn,
-                        blackName: this.blackName,
-                        whiteName: this.whiteName,
-                    });
                     if (
                         client.username ==
                         (this.turn == "black" ? this.blackName : this.whiteName)
@@ -77,10 +71,6 @@ export class OnlineGame extends Game {
     }
 
     broadcastGame() {
-        console.log(
-            "Sending game state to:",
-            this.clients.map((x) => x.username)
-        );
         this.sendAll("game:state", (client: Client) => ({
             ...this.serializeState(),
             self: client.multiplayer.serializeClient(client),
@@ -99,8 +89,10 @@ export class OnlineGame extends Game {
     reconnect(client: Client) {
         if (client.username == this.blackName && this.white) {
             this.clients = [client, this.white];
+            this.black = client;
         } else if (client.username == this.whiteName && this.black) {
             this.clients = [this.black, client];
+            this.white = client;
         } else {
             return false;
         }

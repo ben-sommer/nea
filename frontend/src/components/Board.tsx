@@ -50,8 +50,6 @@ const Counter = ({ color }: { color: Square }) => {
 const Scores = ({ game }: { game: Game }) => {
     const snap = useSnapshot(game);
 
-    console.log(snap);
-
     return (
         <div className="flex w-full items-center justify-between px-9 mb-4 font-medium">
             <div
