@@ -25,9 +25,26 @@ export class OnlineGame extends Game {
 
         this.broadcastGame();
 
+        console.log("before", clients);
+
         for (const client of this.clients) {
             this.bindListeners(client);
+
+            client.invitedBy[
+                client.username == this.blackName
+                    ? this.whiteName
+                    : this.blackName
+            ] = false;
+            client.sentInvites[
+                client.username == this.blackName
+                    ? this.whiteName
+                    : this.blackName
+            ] = false;
         }
+
+        this.black.multiplayer.broadcastPlayers();
+
+        console.log("after", clients);
     }
 
     bindListeners(client: Client) {
@@ -47,6 +64,10 @@ export class OnlineGame extends Game {
 
                         if (!normal) {
                             this.sendAll("game:over");
+                            this.clients[0].multiplayer.removeGame(
+                                this.black,
+                                this.white
+                            );
                         }
                     } else {
                         client.send("game:move:error", "Not your turn");

@@ -133,4 +133,18 @@ export class Multiplayer {
             sentInvites: client.sentInvites,
         };
     }
+
+    removeGame(black: Client | null, white: Client | null) {
+        if (!black || !white) {
+            return;
+        }
+
+        this.games = this.games.filter(
+            (game) =>
+                !(
+                    game.black?.username == black.username &&
+                    game.white?.username == white.username
+                )
+        );
+    }
 }
