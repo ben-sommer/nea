@@ -5,6 +5,7 @@ export class OnlineGame extends Game {
     black: Client | null;
     white: Client | null;
     clients: Client[];
+    forfeited: boolean;
 
     constructor(clients: Client[]) {
         super();
@@ -20,6 +21,7 @@ export class OnlineGame extends Game {
         this.white = clients[whiteIndex];
         this.blackName = this.black.username;
         this.whiteName = this.white.username;
+        this.forfeited = false;
 
         this.clients = [this.black, this.white];
 
@@ -77,13 +79,14 @@ export class OnlineGame extends Game {
 
                     break;
                 case "game:forfeit":
-                    this.sendAll("game:forfeited", client.username);
-                    this.clients[0].multiplayer.removeGame(
-                        this.black,
-                        this.white
-                    );
-                    this.clients[0].multiplayer.broadcastPlayers();
-
+                    if (!this.isGameOver && !this.forfeited) {
+                        this.sendAll("game:forfeited", client.username);
+                        this.clients[0].multiplayer.removeGame(
+                            this.black,
+                            this.white
+                        );
+                        this.clients[0].multiplayer.broadcastPlayers();
+                    }
                     break;
             }
         });

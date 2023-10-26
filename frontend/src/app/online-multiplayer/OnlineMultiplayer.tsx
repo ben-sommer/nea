@@ -74,7 +74,18 @@ export default function OnlineMultiplayer() {
                             setSentInvites(body.sentInvites);
                             break;
                         case "info:players":
-                            console.log({ players: body });
+                            setInvitedBy(
+                                body.find(
+                                    (player: any) =>
+                                        player.username == self?.username
+                                ).invitedBy
+                            );
+                            setSentInvites(
+                                body.find(
+                                    (player: any) =>
+                                        player.username == self?.username
+                                ).sentInvites
+                            );
                             setPlayers(body);
                             break;
                         case "game:send-invite:error":
@@ -184,7 +195,7 @@ export default function OnlineMultiplayer() {
                             >
                                 Log Out
                             </button>
-                            {inGame && (
+                            {inGame && !game?.finished && (
                                 <button
                                     onClick={() => {
                                         sendMessage(
