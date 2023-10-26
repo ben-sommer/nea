@@ -32,23 +32,38 @@ export const RowLabel = ({ rowIndex }: { rowIndex: number }) => {
     );
 };
 
-const Counter = ({ color }: { color: Square }) => {
+const Counter = ({
+    color,
+    hint,
+    hintLevel,
+}: {
+    color: Square;
+    hint?: number;
+    hintLevel?: number;
+}) => {
+    // Hint level:
+    // 0 - off
+    // 1 - show valid moves
+    // 2 - show valid moves and number of counters flipped
+
     return (
         <div
             className={`w-full h-full rounded-full ${
                 color == null
-                    ? "hidden"
+                    ? hint && hintLevel != 0 && hint > 0
+                        ? "border-blue-600 border-2 flex items-center justify-center bg-[#CDCDCD]"
+                        : "hidden"
                     : color == "white"
                     ? "bg-white"
-                    : color == "black"
-                    ? "bg-black"
-                    : "bg-blue-600"
+                    : "bg-black"
             }`}
-        ></div>
+        >
+            {!!hint && hint > 0 && hintLevel == 2 && <p>{hint}</p>}
+        </div>
     );
 };
 
-const Scores = ({ game }: { game: OnlineGame }) => {
+const Scores = ({ game }: { game: OnlineGame | Game }) => {
     const snap = useSnapshot(game);
 
     return (
@@ -88,11 +103,13 @@ export default function Board({
     completionButtonText,
     completionButtonOnClick,
     self,
+    hintLevel = 0,
 }: {
-    game: OnlineGame;
+    game: OnlineGame | Game;
     completionButtonText: string;
     completionButtonOnClick: () => void;
     self?: any;
+    hintLevel?: number;
 }) {
     useEffect(() => {
         // @ts-ignore
@@ -141,6 +158,13 @@ export default function Board({
                                                     7 - rowIndex
                                                 ]
                                             }
+                                            hint={
+                                                snap.checkMove(
+                                                    columnIndex,
+                                                    7 - rowIndex
+                                                ).length
+                                            }
+                                            hintLevel={hintLevel}
                                         />
                                     </div>
                                 ))}

@@ -6,6 +6,7 @@ export class Game {
     blackName: string;
     whiteName: string;
     finished: boolean;
+    forfeitedBy: string | null;
 
     constructor() {
         this.board = this.initialBoard;
@@ -13,6 +14,7 @@ export class Game {
         this.blackName = "Black";
         this.whiteName = "White";
         this.finished = false;
+        this.forfeitedBy = null;
     }
 
     get initialBoard() {
