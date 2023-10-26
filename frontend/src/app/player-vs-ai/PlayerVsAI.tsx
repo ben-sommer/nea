@@ -1,15 +1,11 @@
 "use client";
 
 import Board from "@/components/Board";
-import { Game } from "@/definitions/game";
-import { useState } from "react";
+import { GameVsAI } from "@/definitions/gameVsAI";
 import { proxy } from "valtio";
 
 export default function PlayerVsAI() {
-    const game = proxy(new Game());
-
-    game.blackName = "You";
-    game.whiteName = "AI";
+    const game = proxy(new GameVsAI());
 
     return (
         <div className="flex flex-col gap-4 items-center">
@@ -23,6 +19,7 @@ export default function PlayerVsAI() {
                 game={game}
                 completionButtonOnClick={() => game.reset()}
                 completionButtonText="Start a new game"
+                hintLevel={2}
             />
         </div>
     );

@@ -74,6 +74,8 @@ export class Game {
                 this.board[square[0]][square[1]] = this.turn;
             }
 
+            this.board[x][y] = this.turn;
+
             return flippedSquares.length;
         }
     }
@@ -133,6 +135,20 @@ export class Game {
         }
     }
 
+    get possibleMoves() {
+        let moves = [];
+
+        for (let x = 0; x < 8; x++) {
+            for (let y = 0; y < 8; y++) {
+                if (this.checkMove(x, y).length > 0) {
+                    moves.push([x, y]);
+                }
+            }
+        }
+
+        return moves;
+    }
+
     get anyMovesLeft() {
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
@@ -186,7 +202,6 @@ export class Game {
             return true;
         }
 
-        this.board[x][y] = this.turn;
         this.turn = this.otherPlayer;
 
         if (this.isGameOver) {
