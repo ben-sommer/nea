@@ -78,13 +78,13 @@ export default function OnlineMultiplayer() {
                                 body.find(
                                     (player: any) =>
                                         player.username == self?.username
-                                ).invitedBy
+                                )?.invitedBy || {}
                             );
                             setSentInvites(
                                 body.find(
                                     (player: any) =>
                                         player.username == self?.username
-                                ).sentInvites
+                                )?.sentInvites || {}
                             );
                             setPlayers(body);
                             break;
