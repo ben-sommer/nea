@@ -149,6 +149,7 @@ export class GameVsAI extends Game {
 
         if (!bestMoves.moves.length) {
             console.log("No moves for AI");
+            this.turn = this.otherPlayer;
             return false;
         }
 
