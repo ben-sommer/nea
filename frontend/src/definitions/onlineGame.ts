@@ -2,9 +2,9 @@ import { Player } from "@/types/player";
 import { Game } from "./game";
 
 export class OnlineGame extends Game {
-    sendMessage: (event: string, body?: any) => void;
+    sendMessage: (data: any) => void;
 
-    constructor(sendMessage: (event: string, body?: any) => void) {
+    constructor(sendMessage: (data: any) => void) {
         super();
 
         this.sendMessage = sendMessage;
