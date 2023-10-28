@@ -4,6 +4,7 @@ import { Game } from "./game";
 const staticEvaluation = (board: BoardState) => {
     const game = new Game();
 
+    // Clone the board input which is passed by reference
     game.board = board.map((row) => row.slice()).slice();
 
     return game.scores.black - game.scores.white;
@@ -12,6 +13,7 @@ const staticEvaluation = (board: BoardState) => {
 const isGameOver = (board: BoardState) => {
     const game = new Game();
 
+    // Clone the board input which is passed by reference
     game.board = board.map((row) => row.slice()).slice();
 
     return game.isGameOver;
@@ -20,6 +22,7 @@ const isGameOver = (board: BoardState) => {
 const getPossibleMoves = (board: BoardState, turn: "black" | "white") => {
     const game = new Game();
 
+    // Clone the board input which is passed by reference
     game.board = board.map((row) => row.slice()).slice();
     game.turn = `${turn}`;
 
@@ -34,6 +37,7 @@ const performMove = (
 ) => {
     const game = new Game();
 
+    // Clone the board input which is passed by reference
     game.board = board.map((row) => row.slice()).slice();
     game.turn = `${turn}`;
 
