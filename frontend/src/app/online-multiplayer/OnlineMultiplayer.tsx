@@ -95,7 +95,7 @@ export default function OnlineMultiplayer() {
                                 </span>
                             );
                             break;
-                        case "game:invited":
+                        case "game:send-invite:success":
                             toast(
                                 <span>
                                     <b>{body}</b> invited you to a game

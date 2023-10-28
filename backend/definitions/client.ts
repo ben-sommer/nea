@@ -55,7 +55,7 @@ export class Client {
                         invitee.invitedBy[this.username] = true;
                         this.sentInvites[invitee.username] = true;
 
-                        invitee.send("game:invited", this.username);
+                        invitee.send("game:send-invite:success", this.username);
                     }
                     break;
                 case "game:accept-invite":
