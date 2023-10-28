@@ -7,6 +7,7 @@ export class Game {
     whiteName: string;
     finished: boolean;
     forfeitedBy: string | null;
+    lastMove: [number, number] | null;
 
     constructor() {
         this.board = this.initialBoard;
@@ -15,6 +16,7 @@ export class Game {
         this.whiteName = "White";
         this.finished = false;
         this.forfeitedBy = null;
+        this.lastMove = null;
     }
 
     get initialBoard() {
@@ -75,6 +77,8 @@ export class Game {
             }
 
             this.board[x][y] = this.turn;
+
+            this.lastMove = [x, y];
 
             return flippedSquares.length;
         }

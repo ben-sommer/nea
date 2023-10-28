@@ -36,10 +36,12 @@ const Counter = ({
     color,
     hint,
     hintLevel,
+    lastMove = false,
 }: {
     color: Square;
     hint?: number;
     hintLevel?: number;
+    lastMove?: boolean;
 }) => {
     // Hint level:
     // 0 - off
@@ -48,10 +50,10 @@ const Counter = ({
 
     return (
         <div
-            className={`w-full h-full rounded-full ${
+            className={`w-full h-full rounded-full flex items-center justify-center ${
                 color == null
                     ? hint && hintLevel != 0 && hint > 0
-                        ? "border-blue-600 border-2 flex items-center justify-center bg-[#CDCDCD]"
+                        ? "border-blue-600 border-2 bg-[#CDCDCD]"
                         : "hidden"
                     : color == "white"
                     ? "bg-white"
@@ -59,6 +61,9 @@ const Counter = ({
             }`}
         >
             {!!hint && hint > 0 && hintLevel == 2 && <p>{hint}</p>}
+            {lastMove && (
+                <div className="invert mix-blend-difference font-semibold bg-black rounded-full w-2 h-2 opacity-90"></div>
+            )}
         </div>
     );
 };
@@ -165,6 +170,14 @@ export default function Board({
                                                 ).length
                                             }
                                             hintLevel={hintLevel}
+                                            lastMove={
+                                                game.lastMove
+                                                    ? game.lastMove[0] ==
+                                                          columnIndex &&
+                                                      game.lastMove[1] ==
+                                                          7 - rowIndex
+                                                    : false
+                                            }
                                         />
                                     </div>
                                 ))}
