@@ -1,13 +1,102 @@
 import { BoardState } from "@/types/game";
 import { Game } from "./game";
 
+const weightMatrix = [
+    [10, 7, 4, 4, 4, 4, 7, 10],
+    [7, 7, 0, 0, 0, 0, 7, 7],
+    [4, 0, 0, 0, 0, 0, 0, 4],
+    [4, 0, 0, 0, 0, 0, 0, 4],
+    [4, 0, 0, 0, 0, 0, 0, 4],
+    [4, 0, 0, 0, 0, 0, 0, 4],
+    [7, 7, 0, 0, 0, 0, 7, 7],
+    [10, 7, 4, 4, 4, 4, 7, 10],
+];
+
+const frontierDiscWeight = 1;
+const interiorDiscWeight = 3;
+const winGameWeight = 10000;
+
+const computeWeights = (board: BoardState, color: "black" | "white") => {
+    let total = 0;
+
+    for (let x = 0; x < 8; x++) {
+        for (let y = 0; y < 8; y++) {
+            if (board[x][y] === color) {
+                total += weightMatrix[x][y];
+            }
+        }
+    }
+
+    return total;
+};
+
+const countDiscTypes = (board: BoardState, color: "black" | "white") => {
+    let frontierDiscs = 0;
+    let interiorDiscs = 0;
+
+    for (let x = 0; x < 8; x++) {
+        for (let y = 0; y < 8; y++) {
+            if (board[x][y] === color) {
+                let isFrontier = false;
+
+                // Name loop so can break out of nested loop easily
+                checkLoop: for (let xDir = -1; xDir < 2; xDir++) {
+                    for (let yDir = -1; yDir < 2; yDir++) {
+                        // Check target piece is in the board
+                        if (
+                            !(xDir == 0 && yDir == 0) &&
+                            !(
+                                x + xDir > 7 ||
+                                x + xDir < 0 ||
+                                y + yDir > 7 ||
+                                y + yDir < 0
+                            )
+                        ) {
+                            if (board[x + xDir][y + yDir] === null) {
+                                isFrontier = true;
+                                break checkLoop;
+                            }
+                        }
+                    }
+                }
+
+                if (isFrontier) {
+                    frontierDiscs++;
+                } else {
+                    interiorDiscs++;
+                }
+            }
+        }
+    }
+
+    return (
+        frontierDiscs * frontierDiscWeight + interiorDiscs * interiorDiscWeight
+    );
+};
+
 const staticEvaluation = (board: BoardState) => {
     const game = new Game();
 
     // Clone the board input which is passed by reference
     game.board = board.map((row) => row.slice()).slice();
 
-    return game.scores.black - game.scores.white;
+    const blackScore =
+        computeWeights(game.board, "black") +
+        countDiscTypes(game.board, "black");
+    const whiteScore =
+        computeWeights(game.board, "white") +
+        countDiscTypes(game.board, "white");
+
+    // Zero for draw
+    const winWeight = game.isGameOver
+        ? game.winner == "black"
+            ? winGameWeight
+            : game.winner == "white"
+            ? -winGameWeight
+            : 0
+        : 0;
+
+    return blackScore - whiteScore + winWeight;
 };
 
 const isGameOver = (board: BoardState) => {
@@ -154,6 +243,9 @@ export class GameVsAI extends Game {
         if (!bestMoves.moves.length) {
             console.log("No moves for AI");
             this.turn = this.otherPlayer;
+            if (!this.anyMovesLeft) {
+                this.finished = true;
+            }
             return false;
         }
 
@@ -164,6 +256,11 @@ export class GameVsAI extends Game {
         this.performMove(bestMove[0], bestMove[1]);
 
         this.turn = this.otherPlayer;
+
+        if (!this.anyMovesLeft) {
+            this.turn = this.otherPlayer;
+            this.makeAIMove();
+        }
     }
 
     handleSquareClick(x: number, y: number) {
@@ -199,5 +296,13 @@ export class GameVsAI extends Game {
         }
 
         return true;
+    }
+
+    reset() {
+        this.board = this.initialBoard;
+        this.turn = "black";
+        this.blackName = "You";
+        this.whiteName = "AI";
+        this.finished = false;
     }
 }
