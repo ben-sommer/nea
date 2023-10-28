@@ -4,7 +4,6 @@ import { Game } from "./game";
 export class OnlineGame extends Game {
     black: Client | null;
     white: Client | null;
-    clients: Client[];
     forfeited: boolean;
 
     constructor(clients: Client[]) {
@@ -22,8 +21,6 @@ export class OnlineGame extends Game {
         this.blackName = this.black.username;
         this.whiteName = this.white.username;
         this.forfeited = false;
-
-        this.clients = [this.black, this.white];
 
         this.broadcastGame();
 
@@ -47,6 +44,13 @@ export class OnlineGame extends Game {
         this.black.multiplayer.broadcastPlayers();
 
         console.log("after", clients);
+    }
+
+    get clients() {
+        return [
+            ...(this.black ? [this.black] : []),
+            ...(this.white ? [this.white] : []),
+        ];
     }
 
     bindListeners(client: Client) {
@@ -117,10 +121,8 @@ export class OnlineGame extends Game {
 
     reconnect(client: Client) {
         if (client.username == this.blackName && this.white) {
-            this.clients = [client, this.white];
             this.black = client;
         } else if (client.username == this.whiteName && this.black) {
-            this.clients = [this.black, client];
             this.white = client;
         } else {
             return false;
