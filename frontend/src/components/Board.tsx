@@ -50,7 +50,7 @@ const Counter = ({
 
     return (
         <div
-            className={`w-full h-full rounded-full flex items-center justify-center ${
+            className={`w-full h-full rounded-full flex items-center justify-center transition-colors duration-500 linear ${
                 color == null
                     ? hint && hintLevel != 0 && hint > 0
                         ? "border-blue-600 border-2 bg-[#CDCDCD]"
@@ -151,7 +151,7 @@ export default function Board({
                                             backgroundColor: "#CDCDCD",
                                         }}
                                         onClick={(_) =>
-                                            !game.handleSquareClick(
+                                            game.handleSquareClick(
                                                 columnIndex,
                                                 7 - rowIndex
                                             )

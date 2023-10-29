@@ -1,6 +1,8 @@
 import { BoardState } from "@/types/game";
 import { Game } from "./game";
 
+const delay = 2000;
+
 const weightMatrix = [
     [10, 7, 4, 4, 4, 4, 7, 10],
     [7, 7, 0, 0, 0, 0, 7, 7],
@@ -294,7 +296,9 @@ export class GameVsAI extends Game {
 
         if (!this.anyMovesLeft) {
             this.turn = this.otherPlayer;
-            this.makeAIMove();
+            setTimeout(() => {
+                this.makeAIMove();
+            }, delay);
         }
     }
 
@@ -316,19 +320,24 @@ export class GameVsAI extends Game {
         this.board[x][y] = this.turn;
 
         this.turn = this.otherPlayer;
-        this.makeAIMove();
 
-        if (this.isGameOver) {
-            return false;
-        }
-
-        if (!this.anyMovesLeft) {
-            // No moves available for opponent, so play reverts to previous player
-            console.log("NO MOVES, REVERTED");
-
-            this.turn = this.otherPlayer;
+        setTimeout(() => {
             this.makeAIMove();
-        }
+
+            if (this.isGameOver) {
+                return false;
+            }
+
+            if (!this.anyMovesLeft) {
+                // No moves available for opponent, so play reverts to previous player
+                console.log("NO MOVES, REVERTED");
+
+                this.turn = this.otherPlayer;
+                setTimeout(() => {
+                    this.makeAIMove();
+                }, delay);
+            }
+        }, delay);
 
         return true;
     }
