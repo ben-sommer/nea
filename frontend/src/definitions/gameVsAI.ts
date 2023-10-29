@@ -12,17 +12,19 @@ const weightMatrix = [
     [10, 7, 4, 4, 4, 4, 7, 10],
 ];
 
-const frontierDiscWeight = 1;
-const interiorDiscWeight = 3;
 const winGameWeight = 10000;
 
-const computeWeights = (board: BoardState, color: "black" | "white") => {
+const computeWeights = (
+    board: BoardState,
+    color: "black" | "white",
+    factor: number
+) => {
     let total = 0;
 
     for (let x = 0; x < 8; x++) {
         for (let y = 0; y < 8; y++) {
             if (board[x][y] === color) {
-                total += weightMatrix[x][y];
+                total += weightMatrix[x][y] * factor;
             }
         }
     }
@@ -30,7 +32,12 @@ const computeWeights = (board: BoardState, color: "black" | "white") => {
     return total;
 };
 
-const countDiscTypes = (board: BoardState, color: "black" | "white") => {
+const countDiscTypes = (
+    board: BoardState,
+    color: "black" | "white",
+    frontierDiscWeight: number,
+    interiorDiscWeight: number
+) => {
     let frontierDiscs = 0;
     let interiorDiscs = 0;
 
@@ -74,18 +81,39 @@ const countDiscTypes = (board: BoardState, color: "black" | "white") => {
     );
 };
 
-const staticEvaluation = (board: BoardState) => {
+const staticEvaluation = (board: BoardState, difficulty: number) => {
     const game = new Game();
+
+    let factor = 1;
+    let frontier = 1;
+    let interior = 3;
+    let randomFactor = 1;
+
+    switch (difficulty) {
+        case 1:
+            factor = 0;
+            interior = 1;
+            randomFactor = 0.5 + Math.random();
+            break;
+        case 2:
+            factor = 0.2;
+            interior = 2;
+            randomFactor = 0.75 + Math.random() / 2;
+            break;
+        case 3:
+            // Keep as defaults
+            break;
+    }
 
     // Clone the board input which is passed by reference
     game.board = board.map((row) => row.slice()).slice();
 
     const blackScore =
-        computeWeights(game.board, "black") +
-        countDiscTypes(game.board, "black");
+        computeWeights(game.board, "black", factor) +
+        countDiscTypes(game.board, "black", frontier, interior);
     const whiteScore =
-        computeWeights(game.board, "white") +
-        countDiscTypes(game.board, "white");
+        computeWeights(game.board, "white", factor) +
+        countDiscTypes(game.board, "white", frontier, interior);
 
     // Zero for draw
     const winWeight = game.isGameOver
@@ -96,7 +124,7 @@ const staticEvaluation = (board: BoardState) => {
             : 0
         : 0;
 
-    return blackScore - whiteScore + winWeight;
+    return (blackScore - whiteScore + winWeight) * randomFactor;
 };
 
 const isGameOver = (board: BoardState) => {
@@ -146,9 +174,12 @@ class ScoredMoves {
 }
 
 export class GameVsAI extends Game {
+    difficulty: number;
+
     constructor(
         initialState: BoardState | null = null,
-        turn: "black" | "white" = "black"
+        turn: "black" | "white" = "black",
+        difficulty: number
     ) {
         super();
 
@@ -157,6 +188,7 @@ export class GameVsAI extends Game {
 
         this.blackName = "You";
         this.whiteName = "AI";
+        this.difficulty = difficulty;
     }
 
     minimax(
@@ -168,7 +200,10 @@ export class GameVsAI extends Game {
         isMaximising: boolean
     ): ScoredMoves {
         if (depth == 0 || isGameOver(board)) {
-            return new ScoredMoves(moves, staticEvaluation(board));
+            return new ScoredMoves(
+                moves,
+                staticEvaluation(board, this.difficulty)
+            );
         } else if (isMaximising) {
             let value = new ScoredMoves([], -Infinity);
 
