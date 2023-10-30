@@ -12,6 +12,8 @@ import PlayerList from "@/components/PlayerList";
 import toast from "react-hot-toast";
 import { IoInformationCircle } from "react-icons/io5";
 import { OnlineGame } from "@/definitions/onlineGame";
+import { ServerGame } from "@/types/game";
+import GameList from "@/components/GameList";
 
 export default function OnlineMultiplayer() {
     const [signedIn, setSignedIn] = useState(true);
@@ -31,9 +33,10 @@ export default function OnlineMultiplayer() {
     const didUnmount = useRef(false);
 
     const [game, setGame] = useState<OnlineGame | null>(null);
+    const [games, setGames] = useState<any[]>([]);
 
     const { sendMessage, readyState } = useWebSocket(
-        "ws://localhost:3010/multiplayer",
+        process.env.NEXT_PUBLIC_WS_ADDRESS as string,
         {
             reconnectInterval: (attemptNumber) => {
                 return Math.min(Math.pow(2, attemptNumber) * 1000, 10000);
@@ -87,6 +90,9 @@ export default function OnlineMultiplayer() {
                                 )?.sentInvites || {}
                             );
                             setPlayers(body);
+                            break;
+                        case "info:games":
+                            setGames(body);
                             break;
                         case "game:send-invite:error":
                             toast.error(
@@ -170,6 +176,10 @@ export default function OnlineMultiplayer() {
         sendMessage(JSON.stringify(["game:accept-invite", username]));
     };
 
+    const onSpectate = (game: ServerGame) => {
+        sendMessage(JSON.stringify(["game:spectate", game]));
+    };
+
     return (
         <div className="flex flex-col gap-4 items-center">
             {signedIn ? (
@@ -196,16 +206,38 @@ export default function OnlineMultiplayer() {
                                 Log Out
                             </button>
                             {inGame && !game?.finished && (
-                                <button
-                                    onClick={() => {
-                                        sendMessage(
-                                            JSON.stringify(["game:forfeit"])
-                                        );
-                                    }}
-                                    className="px-4 py-2 rounded-md border border-gray-300 bg-white shadow-md text-sm font-medium outline-none focus:ring-2 ring-indigo-500"
-                                >
-                                    Forfeit
-                                </button>
+                                <>
+                                    {game?.blackName == "You" ||
+                                    game?.whiteName == "You" ? (
+                                        <button
+                                            onClick={() => {
+                                                sendMessage(
+                                                    JSON.stringify([
+                                                        "game:forfeit",
+                                                    ])
+                                                );
+                                            }}
+                                            className="px-4 py-2 rounded-md border border-gray-300 bg-white shadow-md text-sm font-medium outline-none focus:ring-2 ring-indigo-500"
+                                        >
+                                            Forfeit
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => {
+                                                sendMessage(
+                                                    JSON.stringify([
+                                                        "game:spectate-stop",
+                                                    ])
+                                                );
+                                                setGame(null);
+                                                setInGame(false);
+                                            }}
+                                            className="px-4 py-2 rounded-md border border-gray-300 bg-white shadow-md text-sm font-medium outline-none focus:ring-2 ring-indigo-500"
+                                        >
+                                            Stop Spectating
+                                        </button>
+                                    )}
+                                </>
                             )}
                             {inGame && game ? (
                                 <Board
@@ -226,6 +258,13 @@ export default function OnlineMultiplayer() {
                                         self={self}
                                         invitedBy={invitedBy}
                                         sentInvites={sentInvites}
+                                    />
+                                    <p className="mt-8">
+                                        Active games ({games.length}):
+                                    </p>
+                                    <GameList
+                                        games={games}
+                                        onSpectate={onSpectate}
                                     />
                                 </>
                             )}

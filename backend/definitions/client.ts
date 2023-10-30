@@ -38,43 +38,77 @@ export class Client {
         });
 
         this.connection.on("message", (message: string) => {
-            const parsedMessage = JSON.parse(message.toString());
+            try {
+                const parsedMessage = JSON.parse(message.toString());
 
-            const instruction = parsedMessage[0];
-            const body = parsedMessage[1] || {};
+                const instruction = parsedMessage[0];
+                const body = parsedMessage[1] || {};
 
-            switch (instruction) {
-                case "game:send-invite":
-                    {
-                        const invitee = this.multiplayer.getClient(body);
+                switch (instruction) {
+                    case "game:send-invite":
+                        {
+                            const invitee = this.multiplayer.getClient(body);
 
-                        if (!invitee) {
-                            return this.send("game:send-invite:error", body);
-                        }
+                            if (!invitee) {
+                                return this.send(
+                                    "game:send-invite:error",
+                                    body
+                                );
+                            }
 
-                        invitee.invitedBy[this.username] = true;
-                        this.sentInvites[invitee.username] = true;
+                            invitee.invitedBy[this.username] = true;
+                            this.sentInvites[invitee.username] = true;
 
-                        invitee.send("game:send-invite:success", this.username);
-                    }
-                    break;
-                case "game:accept-invite":
-                    {
-                        const invitee = this.multiplayer.getClient(body);
-
-                        if (!invitee) {
-                            return this.send(
-                                "game:accept-invite:error",
-                                invitee
+                            invitee.send(
+                                "game:send-invite:success",
+                                this.username
                             );
                         }
+                        break;
+                    case "game:accept-invite":
+                        {
+                            const invitee = this.multiplayer.getClient(body);
 
-                        const game = new OnlineGame([invitee, this]);
+                            if (!invitee) {
+                                return this.send(
+                                    "game:accept-invite:error",
+                                    invitee
+                                );
+                            }
 
-                        this.multiplayer.games.push(game);
-                    }
-                    break;
-            }
+                            const game = new OnlineGame([invitee, this]);
+
+                            this.multiplayer.games.push(game);
+
+                            this.multiplayer.broadcastGames();
+                        }
+                        break;
+                    case "game:spectate":
+                        {
+                            const { black, white } = body;
+
+                            const game = this.multiplayer.getGame(black, white);
+
+                            game?.spectators.push(this);
+
+                            game?.broadcastGame();
+                        }
+                        break;
+                    case "game:spectate-stop":
+                        {
+                            const { black, white } = body;
+
+                            const game = this.multiplayer.getGame(black, white);
+
+                            if (game) {
+                                game.spectators = game?.spectators.filter(
+                                    (user) => user.username !== this.username
+                                );
+                            }
+                        }
+                        break;
+                }
+            } catch (e) {}
         });
     }
 

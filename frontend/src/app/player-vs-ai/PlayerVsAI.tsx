@@ -12,7 +12,7 @@ export default function PlayerVsAI() {
 
     useEffect(() => {
         setGame(proxy(new GameVsAI(null, "black", difficulty)));
-    }, []);
+    }, [difficulty]);
 
     return (
         game && (

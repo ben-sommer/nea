@@ -49,6 +49,7 @@ export class Multiplayer {
         this.clients.push(client);
 
         this.broadcastPlayers();
+        this.broadcastGames();
 
         client.send("auth:login:success", this.serializeClient(client));
 
@@ -108,11 +109,19 @@ export class Multiplayer {
             // }
 
             this.broadcastPlayers();
+            this.broadcastGames();
         }
     }
 
     getClient(username: string) {
         return this.clients.find((client) => client.username == username);
+    }
+
+    getGame(black: string, white: string) {
+        return this.games.find(
+            (game) =>
+                game.black?.username == black && game.white?.username == white
+        );
     }
 
     broadcastPlayers() {
@@ -124,6 +133,15 @@ export class Multiplayer {
         });
     }
 
+    broadcastGames() {
+        this.clients.forEach((client) => {
+            client.send(
+                "info:games",
+                this.games.map((g) => this.serializeGame(g))
+            );
+        });
+    }
+
     serializeClient(client: Client) {
         return {
             firstName: client.firstName,
@@ -131,6 +149,13 @@ export class Multiplayer {
             username: client.username,
             invitedBy: client.invitedBy,
             sentInvites: client.sentInvites,
+        };
+    }
+
+    serializeGame(game: OnlineGame) {
+        return {
+            black: game.blackName,
+            white: game.whiteName,
         };
     }
 

@@ -4,6 +4,7 @@ import { Game } from "./game";
 export class OnlineGame extends Game {
     black: Client | null;
     white: Client | null;
+    spectators: Client[];
     forfeited: boolean;
 
     constructor(clients: Client[]) {
@@ -15,6 +16,8 @@ export class OnlineGame extends Game {
 
         const blackIndex = Math.floor(Math.random() * 2);
         const whiteIndex = 1 - blackIndex;
+
+        this.spectators = [];
 
         this.black = clients[blackIndex];
         this.white = clients[whiteIndex];
@@ -60,44 +63,53 @@ export class OnlineGame extends Game {
             const instruction = parsedMessage[0];
             const body = parsedMessage[1] || {};
 
-            switch (instruction) {
-                case "game:move":
-                    if (
-                        client.username ==
-                        (this.turn == "black" ? this.blackName : this.whiteName)
-                    ) {
-                        const normal = this.handleSquareClick(body.x, body.y);
+            if (!this.finished) {
+                switch (instruction) {
+                    case "game:move":
+                        if (
+                            client.username ==
+                            (this.turn == "black"
+                                ? this.blackName
+                                : this.whiteName)
+                        ) {
+                            const normal = this.handleSquareClick(
+                                body.x,
+                                body.y
+                            );
 
-                        if (!normal) {
-                            this.sendAll("game:over");
+                            if (!normal) {
+                                this.sendAll("game:over");
+                                this.clients[0].multiplayer.removeGame(
+                                    this.black,
+                                    this.white
+                                );
+                                this.clients[0].multiplayer.broadcastGames();
+                            }
+                        } else {
+                            client.send("game:move:error", "Not your turn");
+                        }
+
+                        this.broadcastGame();
+
+                        break;
+                    case "game:forfeit":
+                        if (!this.isGameOver && !this.forfeited) {
+                            this.sendAll("game:forfeited", client.username);
                             this.clients[0].multiplayer.removeGame(
                                 this.black,
                                 this.white
                             );
+                            this.clients[0].multiplayer.broadcastPlayers();
+                            this.clients[0].multiplayer.broadcastGames();
                         }
-                    } else {
-                        client.send("game:move:error", "Not your turn");
-                    }
-
-                    this.broadcastGame();
-
-                    break;
-                case "game:forfeit":
-                    if (!this.isGameOver && !this.forfeited) {
-                        this.sendAll("game:forfeited", client.username);
-                        this.clients[0].multiplayer.removeGame(
-                            this.black,
-                            this.white
-                        );
-                        this.clients[0].multiplayer.broadcastPlayers();
-                    }
-                    break;
+                        break;
+                }
             }
         });
     }
 
     sendAll(event: string, body?: any) {
-        for (const client of this.clients) {
+        for (const client of [...this.clients, ...this.spectators]) {
             client.send(event, typeof body == "function" ? body(client) : body);
         }
     }
