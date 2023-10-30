@@ -224,13 +224,19 @@ export default function OnlineMultiplayer() {
                                     ) : (
                                         <button
                                             onClick={() => {
-                                                sendMessage(
-                                                    JSON.stringify([
-                                                        "game:spectate-stop",
-                                                    ])
-                                                );
-                                                setGame(null);
-                                                setInGame(false);
+                                                if (game) {
+                                                    sendMessage(
+                                                        JSON.stringify([
+                                                            "game:spectate-stop",
+                                                            {
+                                                                black: game.blackName,
+                                                                white: game.whiteName,
+                                                            },
+                                                        ])
+                                                    );
+                                                    setGame(null);
+                                                    setInGame(false);
+                                                }
                                             }}
                                             className="px-4 py-2 rounded-md border border-gray-300 bg-white shadow-md text-sm font-medium outline-none focus:ring-2 ring-indigo-500"
                                         >
