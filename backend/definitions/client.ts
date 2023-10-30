@@ -115,4 +115,14 @@ export class Client {
     send(event: string, body?: any) {
         this.connection.send(JSON.stringify([event].concat([body] || [])));
     }
+
+    serialize() {
+        return {
+            firstName: this.firstName,
+            lastName: this.lastName,
+            username: this.username,
+            invitedBy: this.invitedBy,
+            sentInvites: this.sentInvites,
+        };
+    }
 }

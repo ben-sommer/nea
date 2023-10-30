@@ -117,10 +117,11 @@ export class OnlineGame extends Game {
     broadcastGame() {
         this.sendAll("game:state", (client: Client) => ({
             ...this.serializeState(),
-            self: client.multiplayer.serializeClient(client),
+            self: client.serialize(),
         }));
     }
 
+    // Detailed game state for spectators and players
     serializeState() {
         return {
             turn: this.turn,
@@ -128,6 +129,14 @@ export class OnlineGame extends Game {
             whiteName: this.whiteName,
             blackName: this.blackName,
             finished: this.finished,
+        };
+    }
+
+    // Summary game state for others
+    serialize() {
+        return {
+            black: this.blackName,
+            white: this.whiteName,
         };
     }
 
