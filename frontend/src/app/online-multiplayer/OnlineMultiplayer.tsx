@@ -14,6 +14,7 @@ import { IoInformationCircle } from "react-icons/io5";
 import { OnlineGame } from "@/definitions/onlineGame";
 import { ServerGame } from "@/types/game";
 import GameList from "@/components/GameList";
+import Leaderboard from "@/components/Leaderboard";
 
 export default function OnlineMultiplayer() {
     const [signedIn, setSignedIn] = useState(true);
@@ -181,7 +182,7 @@ export default function OnlineMultiplayer() {
     };
 
     return (
-        <div className="flex flex-col gap-4 items-center">
+        <div className="flex flex-col gap-4 items-center mb-4">
             {signedIn ? (
                 <>
                     {readyState == ReadyState.CLOSED ||
@@ -272,6 +273,8 @@ export default function OnlineMultiplayer() {
                                         games={games}
                                         onSpectate={onSpectate}
                                     />
+                                    <p className="font-semibold">Leaderboard</p>
+                                    <Leaderboard />
                                 </>
                             )}
                         </div>
