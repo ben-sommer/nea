@@ -1,11 +1,15 @@
+import { sqlFromFile } from "../utils/database";
+import { jsToSqlDate } from "../utils/date";
 import { Client } from "./client";
 import { Game } from "./game";
+import { v4 as uuid } from "uuid";
 
 export class OnlineGame extends Game {
     black: Client | null;
     white: Client | null;
     spectators: Client[];
     forfeited: boolean;
+    documented: boolean;
 
     constructor(clients: Client[]) {
         super();
@@ -24,6 +28,7 @@ export class OnlineGame extends Game {
         this.blackName = this.black.username;
         this.whiteName = this.white.username;
         this.forfeited = false;
+        this.documented = false;
 
         this.broadcastGame();
 
@@ -57,7 +62,7 @@ export class OnlineGame extends Game {
     }
 
     bindListeners(client: Client) {
-        client.connection.on("message", (message) => {
+        client.connection.on("message", async (message) => {
             const parsedMessage = JSON.parse(message.toString());
 
             const instruction = parsedMessage[0];
@@ -84,6 +89,34 @@ export class OnlineGame extends Game {
                                     this.white
                                 );
                                 this.clients[0].multiplayer.broadcastGames();
+
+                                if (!this.documented) {
+                                    this.documented = true;
+
+                                    for (const client of this.clients) {
+                                        await client.multiplayer.db.run(
+                                            await sqlFromFile(
+                                                "update",
+                                                "CreateGame"
+                                            ),
+                                            {
+                                                ":id": uuid(),
+                                                ":user": client.username,
+                                                ":outcome":
+                                                    this.winner == "draw"
+                                                        ? "draw"
+                                                        : this.getNameFromColor(
+                                                              this.winner
+                                                          ) == client.username
+                                                        ? "win"
+                                                        : "loss",
+                                                ":completedAt": jsToSqlDate(
+                                                    new Date()
+                                                ),
+                                            }
+                                        );
+                                    }
+                                }
                             }
                         } else {
                             client.send("game:move:error", "Not your turn");
@@ -101,6 +134,32 @@ export class OnlineGame extends Game {
                             );
                             this.clients[0].multiplayer.broadcastPlayers();
                             this.clients[0].multiplayer.broadcastGames();
+
+                            if (!this.documented) {
+                                this.documented = true;
+
+                                const forfeitedBy = client.username;
+
+                                for (const client of this.clients) {
+                                    await client.multiplayer.db.run(
+                                        await sqlFromFile(
+                                            "update",
+                                            "CreateGame"
+                                        ),
+                                        {
+                                            ":id": uuid(),
+                                            ":user": client.username,
+                                            ":outcome":
+                                                forfeitedBy == client.username
+                                                    ? "loss"
+                                                    : "win",
+                                            ":completedAt": jsToSqlDate(
+                                                new Date()
+                                            ),
+                                        }
+                                    );
+                                }
+                            }
                         }
                         break;
                 }

@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS Game (
   Id TEXT PRIMARY KEY,  
-  User1 TEXT,
-  User2 TEXT,
+  User TEXT,
   Outcome TEXT,
   CompletedAt TIMESTAMP
 );

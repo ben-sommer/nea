@@ -57,7 +57,7 @@ app.use(function (req, res, next) {
         const hashedPassword = await bcrypt.hash(body.password, 10);
 
         try {
-            await db.run(await sqlFromFile("query", "CreateUser"), {
+            await db.run(await sqlFromFile("update", "CreateUser"), {
                 ":username": body.username,
                 ":firstName": body.firstName,
                 ":lastName": body.lastName,
@@ -127,6 +127,14 @@ app.use(function (req, res, next) {
             console.log(e.message);
             return res.sendStatus(400);
         }
+    });
+
+    app.get("/leaderboard", async (req, res) => {
+        const result = await db.all(
+            await sqlFromFile("query", "GetLeaderboard")
+        );
+
+        res.json(result);
     });
 
     app.ws("/multiplayer", async (ws, req) => {
