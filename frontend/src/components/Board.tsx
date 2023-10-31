@@ -5,6 +5,7 @@ import { OnlineGame } from "@/definitions/onlineGame";
 import { BoardState, Square } from "@/types/game";
 import { useEffect, useState } from "react";
 import { useSnapshot } from "valtio";
+import Rules from "./Rules";
 
 const ColumnLabels = () => {
     return (
@@ -216,6 +217,8 @@ export default function Board({
                     </p>
                 </div>
             )}
+
+            <Rules />
         </div>
     );
 }
