@@ -33,7 +33,7 @@ export default function Leaderboard() {
 
                     return (
                         <tr
-                            className="bg-white rounded-md border-t border-gray-100"
+                            className="bg-white rounded-md border-t border-gray-100 text-sm"
                             key={row.User}
                         >
                             <td className="py-1 font-semibold">{row.User}</td>
