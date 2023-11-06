@@ -36,7 +36,9 @@ export default function Leaderboard() {
                             className="bg-white rounded-md border-t border-gray-100 text-sm"
                             key={row.User}
                         >
-                            <td className="py-1 font-semibold">{row.User}</td>
+                            <td className="py-1 px-2 font-semibold">
+                                {row.User}
+                            </td>
                             <td className="py-1">{games}</td>
                             <td className="py-1">{row.Wins}</td>
                             <td className="py-1">{row.Draws}</td>
