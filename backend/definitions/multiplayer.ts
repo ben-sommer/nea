@@ -18,6 +18,7 @@ export class Multiplayer {
     }
 
     async addClient(connection: ws, token: string) {
+        // Check token is valid
         const user = await this.db.get(
             await sqlFromFile("query", "GetUserByToken"),
             {
@@ -31,6 +32,7 @@ export class Multiplayer {
 
         const expiry = sqlToJsDate(user.TokenExpiry);
 
+        // Check token hasn't expired
         if (expiry < new Date()) {
             throw new Error("Token expired");
         }
@@ -44,6 +46,7 @@ export class Multiplayer {
         );
 
         // Remove any existing clients with the same username
+        // Only one concurrent login per user supported
         this.removeClient(client.username);
 
         this.clients.push(client);
@@ -59,17 +62,20 @@ export class Multiplayer {
                     (client.username == game.blackName && game.white) ||
                     (client.username == game.whiteName && game.black)
                 ) {
+                    // Reconnect to any ongoing games if applicable
                     game.reconnect(client);
                 }
             }
         }
 
+        // Listen for log out instruction
         client.connection.on("message", (message: string) => {
             const parsedMessage = JSON.parse(message);
 
             const instruction = parsedMessage[0];
 
             if (instruction == "auth:logout") {
+                // Remove client but keep WebSocket open
                 this.removeClient(client.username, true);
             }
         });
@@ -88,25 +94,6 @@ export class Multiplayer {
             this.clients = this.clients.filter(
                 (client) => client.username !== username
             );
-
-            // for (const game of this.games) {
-            //     if (
-            //         game.clients.find(
-            //             (user) => user.username == client.username
-            //         )
-            //     ) {
-            //         if (client.username == game.blackName && game.white) {
-            //             game.black = null;
-            //             game.clients = [game.white];
-            //         } else if (
-            //             client.username == game.whiteName &&
-            //             game.black
-            //         ) {
-            //             game.white = null;
-            //             game.clients = [game.black];
-            //         }
-            //     }
-            // }
 
             this.broadcastPlayers();
             this.broadcastGames();

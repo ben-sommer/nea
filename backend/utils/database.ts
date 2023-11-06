@@ -3,8 +3,10 @@ import { open } from "sqlite";
 import { readFile, readdir } from "fs/promises";
 import { join } from "path";
 
+// File will be created if it doesn't already exist
 const databaseFilename = "db.sqlite";
 
+// Load SQL commands from file
 export const sqlFromFile = async (
     type: "definition" | "query" | "update",
     filename: string
@@ -16,6 +18,7 @@ export const sqlFromFile = async (
     return sql.toString();
 };
 
+// Load all SQL table definitions
 const getDefinitions = async () => {
     const files = await readdir(
         join(__dirname, "..", "..", "sql", "definition")
@@ -30,6 +33,7 @@ const getDefinitions = async () => {
     return sql;
 };
 
+// Initialise tables and return database connection
 export const database = async () => {
     const db = await open({
         filename: databaseFilename,
@@ -43,8 +47,7 @@ export const database = async () => {
 
         console.log("Database initialised successfully");
     } catch (e: any) {
-        // Tables already exist
-        console.log(e.message);
+        console.log("Could not initialise database");
     }
 
     return db;

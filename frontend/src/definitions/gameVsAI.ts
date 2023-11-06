@@ -268,37 +268,39 @@ export class GameVsAI extends Game {
     }
 
     makeAIMove() {
-        const bestMoves = this.minimax(
-            this.board,
-            [],
-            5,
-            new ScoredMoves([], -Infinity),
-            new ScoredMoves([], Infinity),
-            false
-        );
+        if (this.turn == "white") {
+            const bestMoves = this.minimax(
+                this.board,
+                [],
+                5,
+                new ScoredMoves([], -Infinity),
+                new ScoredMoves([], Infinity),
+                false
+            );
 
-        if (!bestMoves.moves.length) {
-            console.log("No moves for AI");
-            this.turn = this.otherPlayer;
-            if (!this.anyMovesLeft) {
-                this.finished = true;
+            if (!bestMoves.moves.length) {
+                console.log("No moves for AI");
+                this.turn = this.otherPlayer;
+                if (!this.anyMovesLeft) {
+                    this.finished = true;
+                }
+                return false;
             }
-            return false;
-        }
 
-        console.log(bestMoves);
+            console.log(bestMoves);
 
-        const bestMove = bestMoves.moves[0];
+            const bestMove = bestMoves.moves[0];
 
-        this.performMove(bestMove[0], bestMove[1]);
+            this.performMove(bestMove[0], bestMove[1]);
 
-        this.turn = this.otherPlayer;
-
-        if (!this.anyMovesLeft) {
             this.turn = this.otherPlayer;
-            setTimeout(() => {
-                this.makeAIMove();
-            }, delay);
+
+            if (!this.anyMovesLeft) {
+                this.turn = this.otherPlayer;
+                setTimeout(() => {
+                    this.makeAIMove();
+                }, delay);
+            }
         }
     }
 

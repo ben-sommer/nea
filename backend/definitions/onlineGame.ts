@@ -37,6 +37,7 @@ export class OnlineGame extends Game {
         for (const client of this.clients) {
             this.bindListeners(client);
 
+            // Remove invite map flags
             client.invitedBy[
                 client.username == this.blackName
                     ? this.whiteName
@@ -50,8 +51,6 @@ export class OnlineGame extends Game {
         }
 
         this.black.multiplayer.broadcastPlayers();
-
-        console.log("after", clients);
     }
 
     get clients() {
@@ -90,6 +89,7 @@ export class OnlineGame extends Game {
                                 );
                                 this.clients[0].multiplayer.broadcastGames();
 
+                                // Ensure leaderboard is only updated once
                                 if (!this.documented) {
                                     this.documented = true;
 
@@ -135,6 +135,7 @@ export class OnlineGame extends Game {
                             this.clients[0].multiplayer.broadcastPlayers();
                             this.clients[0].multiplayer.broadcastGames();
 
+                            // Ensure leaderboard is only updated once
                             if (!this.documented) {
                                 this.documented = true;
 
@@ -167,6 +168,7 @@ export class OnlineGame extends Game {
         });
     }
 
+    // Send message to both players
     sendAll(event: string, body?: any) {
         for (const client of [...this.clients, ...this.spectators]) {
             client.send(event, typeof body == "function" ? body(client) : body);

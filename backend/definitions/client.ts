@@ -27,6 +27,8 @@ export class Client {
         this.invitedBy = {};
         this.sentInvites = {};
 
+        // Restore self invite state from currently connected users
+
         this.multiplayer.clients.forEach((client) => {
             if (client.invitedBy[this.username]) {
                 this.sentInvites[client.username] = true;
@@ -37,18 +39,25 @@ export class Client {
             }
         });
 
+        // Attach WebSocket message handler
         this.connection.on("message", (message: string) => {
             try {
+                // Parse JSON message data from
                 const parsedMessage = JSON.parse(message.toString());
 
+                // Extract instruction name from message
                 const instruction = parsedMessage[0];
+
+                // Extract (optional) body from message
                 const body = parsedMessage[1] || {};
 
                 switch (instruction) {
                     case "game:send-invite":
                         {
+                            // Get client by username
                             const invitee = this.multiplayer.getClient(body);
 
+                            // Require invitee to exist
                             if (!invitee) {
                                 return this.send(
                                     "game:send-invite:error",
@@ -56,9 +65,11 @@ export class Client {
                                 );
                             }
 
+                            // Update invite map state
                             invitee.invitedBy[this.username] = true;
                             this.sentInvites[invitee.username] = true;
 
+                            // Send recipient notification
                             invitee.send(
                                 "game:send-invite:success",
                                 this.username
@@ -67,39 +78,55 @@ export class Client {
                         break;
                     case "game:accept-invite":
                         {
-                            const invitee = this.multiplayer.getClient(body);
+                            // Get inviter by username
+                            const inviter = this.multiplayer.getClient(body);
 
-                            if (!invitee) {
+                            // Require inviter to exist
+                            if (!inviter) {
                                 return this.send(
                                     "game:accept-invite:error",
-                                    invitee
+                                    inviter
                                 );
                             }
 
-                            const game = new OnlineGame([invitee, this]);
+                            // Require inviter to have invited self
+                            if (!this.invitedBy[body] == true) {
+                                return this.send(
+                                    "game:accept-invite:error",
+                                    inviter
+                                );
+                            }
+
+                            // Initialise instance of OnlineGame class with both players
+                            const game = new OnlineGame([inviter, this]);
 
                             this.multiplayer.games.push(game);
 
+                            // Update all clients with currently ongoing games
                             this.multiplayer.broadcastGames();
                         }
                         break;
                     case "game:spectate":
                         {
+                            // Extract black and white player usernames from message body
                             const { black, white } = body;
 
                             const game = this.multiplayer.getGame(black, white);
 
                             game?.spectators.push(this);
 
+                            // Send new spectator game state
                             game?.broadcastGame();
                         }
                         break;
                     case "game:spectate-stop":
                         {
+                            // Extract black and white player usernames from message body
                             const { black, white } = body;
 
                             const game = this.multiplayer.getGame(black, white);
 
+                            // Remove spectator from instance of Game class
                             if (game) {
                                 game.spectators = game?.spectators.filter(
                                     (user) => user.username !== this.username
@@ -108,7 +135,12 @@ export class Client {
                         }
                         break;
                 }
-            } catch (e) {}
+            } catch (e: any) {
+                console.log(
+                    e.message ||
+                        "An error occured when processing a socket message"
+                );
+            }
         });
     }
 
@@ -116,6 +148,7 @@ export class Client {
         this.connection.send(JSON.stringify([event].concat([body] || [])));
     }
 
+    // Serialise self state for transmission
     serialize() {
         return {
             firstName: this.firstName,

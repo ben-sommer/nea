@@ -20,10 +20,12 @@ export class Game {
     }
 
     get initialBoard() {
+        // Empty 8x8 2D-array
         const board: BoardState = Array(8)
             .fill(null)
             .map((_) => Array(8).fill(null));
 
+        // Place initial 4 counters
         board[3][3] = "black";
         board[3][4] = "white";
         board[4][3] = "white";
@@ -33,15 +35,17 @@ export class Game {
     }
 
     get scores() {
+        // Generate sum from array of values of any type via custom checker function
         const addReduce = (
             array: any[],
-            condition: (item: any) => number
+            getNum: (item: any) => number
         ): number =>
             array.reduce(
-                (previous, current) => previous + (condition(current) || 0),
+                (previous, current) => previous + (getNum(current) || 0),
                 0
             );
 
+        // Summate 8x8 2-D array into 1-D array and then again into a single number for both colours
         return {
             black: addReduce(
                 this.board.map((line) =>
@@ -89,6 +93,7 @@ export class Game {
             return [];
         }
 
+        // Recursive function to check for valid runs
         const ray = (
             x: number,
             y: number,
@@ -121,11 +126,13 @@ export class Game {
         for (let xDir = -1; xDir < 2; xDir++) {
             for (let yDir = -1; yDir < 2; yDir++) {
                 if (!(xDir == 0 && yDir == 0)) {
+                    // Add counters to be flipped from this run to array
                     squares = [...squares, ...ray(x, y, xDir, yDir, [])];
                 }
             }
         }
 
+        // Return comprehensive list of squares where counters need to be flipped
         return squares;
     }
 
@@ -153,6 +160,8 @@ export class Game {
         return moves;
     }
 
+    // More time efficient version of the above function
+    // Not needed to identify exact moves, only presence of one
     get anyMovesLeft() {
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
@@ -174,6 +183,7 @@ export class Game {
             return false;
         }
 
+        // Check if any moves left for opponent
         this.turn = this.otherPlayer;
 
         const opponentMovesLeft = this.anyMovesLeft;
@@ -214,7 +224,6 @@ export class Game {
 
         if (!this.anyMovesLeft) {
             // No moves available for opponent, so play reverts to previous player
-            console.log("NO MOVES, REVERTED");
 
             this.turn = this.otherPlayer;
         }
