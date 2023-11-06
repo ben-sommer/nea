@@ -1,1 +1,7 @@
-UPDATE User SET Token = :token, TokenExpiry = :tokenExpiry WHERE Username = :username;
+UPDATE 
+  User 
+SET 
+  Token = : token, 
+  TokenExpiry = : tokenExpiry 
+WHERE 
+  Username = : username;

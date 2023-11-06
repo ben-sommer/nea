@@ -1,1 +1,6 @@
-SELECT * FROM User WHERE Token = :token;
+SELECT
+    *
+FROM
+    User
+WHERE
+    Token = :token;

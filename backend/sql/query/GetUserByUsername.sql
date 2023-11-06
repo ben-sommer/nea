@@ -1,1 +1,6 @@
-SELECT * FROM User WHERE Username = :username;
+SELECT
+    *
+FROM
+    User
+WHERE
+    Username = :username;
