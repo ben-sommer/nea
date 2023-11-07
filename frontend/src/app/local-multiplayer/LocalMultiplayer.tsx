@@ -13,6 +13,7 @@ export default function LocalMultiplayer() {
 
     const [game, setGame] = useState<Game | null>(null);
 
+    // Initialise new game on first render
     useEffect(() => {
         setGame(proxy(new Game()));
     }, []);
