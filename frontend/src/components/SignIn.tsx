@@ -202,6 +202,14 @@ export default function SignIn({
                 )}
             </div>
 
+            <p className="mt-2 text-sm ">
+                Password must be between 8 and 16 characters
+                <br />
+                Usernames can only contain letters, numbers, an underscore or a
+                dot, cannot contain multiple underscores or dots adjacent and
+                must be between 3 and 20 characters
+            </p>
+
             {error && (
                 <p className="text-red-500 font-medium text-left text-sm mt-2">
                     {error}
