@@ -341,7 +341,6 @@ export class GameVsAI extends Game {
 
             if (!this.anyMovesLeft) {
                 // No moves available for opponent, so play reverts to previous player
-                console.log("NO MOVES, REVERTED");
 
                 this.turn = this.otherPlayer;
                 setTimeout(() => {

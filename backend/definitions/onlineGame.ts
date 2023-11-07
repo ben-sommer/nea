@@ -32,8 +32,6 @@ export class OnlineGame extends Game {
 
         this.broadcastGame();
 
-        console.log("before", clients);
-
         for (const client of this.clients) {
             this.bindListeners(client);
 
