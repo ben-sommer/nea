@@ -2,8 +2,7 @@
 
 import { Game } from "@/definitions/game";
 import { OnlineGame } from "@/definitions/onlineGame";
-import { BoardState, Square } from "@/types/game";
-import { useEffect, useState } from "react";
+import { Square } from "@/types/game";
 import { useSnapshot } from "valtio";
 import Rules from "./Rules";
 
@@ -70,6 +69,7 @@ const Counter = ({
 };
 
 const Scores = ({ game }: { game: OnlineGame | Game }) => {
+    // Hack to use stateful class instances withj React components
     const snap = useSnapshot(game);
 
     return (
@@ -117,11 +117,7 @@ export default function Board({
     self?: any;
     hintLevel?: number;
 }) {
-    useEffect(() => {
-        // @ts-ignore
-        window.game = game;
-    }, [game]);
-
+    // Hack to use stateful class instances withj React components
     const snap = useSnapshot(game);
 
     return (

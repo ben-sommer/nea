@@ -1,4 +1,3 @@
-import { Player } from "@/types/player";
 import { Game } from "./game";
 
 export class OnlineGame extends Game {

@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 import { proxy } from "valtio";
 
 export default function LocalMultiplayer() {
+    // 0 - No hints
+    // 1 - Basic hints (possible moves)
+    // 2 - Advanced hints (possible moves and number flipped)
     const [hintLevel, setHintLevel] = useState(0);
 
     const [game, setGame] = useState<Game | null>(null);

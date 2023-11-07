@@ -10,8 +10,9 @@ export default function PlayerVsAI() {
 
     const [game, setGame] = useState<GameVsAI | null>(null);
 
+    // When difficulty is changed (and on first render), initialise new game
     useEffect(() => {
-        setGame(proxy(new GameVsAI(null, "black", difficulty)));
+        setGame(proxy(new GameVsAI("black", difficulty)));
     }, [difficulty]);
 
     return (

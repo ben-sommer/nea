@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useCookies } from "react-cookie";
 
+// Handles sign in and register functionality
 export default function SignIn({
     onSuccess,
     signInError,

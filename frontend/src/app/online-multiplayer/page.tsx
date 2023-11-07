@@ -1,4 +1,3 @@
-import Board from "@/components/Board";
 import Container from "@/components/Container";
 import OnlineMultiplayer from "./OnlineMultiplayer";
 

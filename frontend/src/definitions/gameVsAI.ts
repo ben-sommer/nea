@@ -1,8 +1,10 @@
 import { BoardState } from "@/types/game";
 import { Game } from "./game";
 
+// AI "thinking" time on top of computation time
 const delay = 2000;
 
+// Matrix representing relative value of certain locations
 const weightMatrix = [
     [10, 7, 4, 4, 4, 4, 7, 10],
     [7, 7, 0, 0, 0, 0, 7, 7],
@@ -14,8 +16,10 @@ const weightMatrix = [
     [10, 7, 4, 4, 4, 4, 7, 10],
 ];
 
+// Large enough to outweigh any other state value
 const winGameWeight = 10000;
 
+// Apply weight matrix to board state
 const computeWeights = (
     board: BoardState,
     color: "black" | "white",
@@ -34,6 +38,7 @@ const computeWeights = (
     return total;
 };
 
+// Sum relative weights for interior and frontier disc types
 const countDiscTypes = (
     board: BoardState,
     color: "black" | "white",
@@ -63,6 +68,7 @@ const countDiscTypes = (
                         ) {
                             if (board[x + xDir][y + yDir] === null) {
                                 isFrontier = true;
+                                // only need to find one blank square around this counter to decude it is a frontier piece
                                 break checkLoop;
                             }
                         }
@@ -83,23 +89,29 @@ const countDiscTypes = (
     );
 };
 
+// function for minimax to evaluate a game state
 const staticEvaluation = (board: BoardState, difficulty: number) => {
     const game = new Game();
 
-    let factor = 1;
-    let frontier = 1;
-    let interior = 3;
+    let positionWeightFactor = 1;
+    let frontierWeight = 1;
+    let interiorWeight = 3;
     let randomFactor = 1;
 
     switch (difficulty) {
         case 1:
-            factor = 0;
-            interior = 1;
+            // prioritise instantaneous number of own counters (with a degree of randomness)
+            positionWeightFactor = 0;
+            interiorWeight = 1;
+
+            // Between 0.5 and 1.5
             randomFactor = 0.5 + Math.random();
             break;
         case 2:
-            factor = 0.2;
-            interior = 2;
+            positionWeightFactor = 0.2;
+            interiorWeight = 2;
+
+            // Between 0.75 and 1.25
             randomFactor = 0.75 + Math.random() / 2;
             break;
         case 3:
@@ -111,11 +123,11 @@ const staticEvaluation = (board: BoardState, difficulty: number) => {
     game.board = board.map((row) => row.slice()).slice();
 
     const blackScore =
-        computeWeights(game.board, "black", factor) +
-        countDiscTypes(game.board, "black", frontier, interior);
+        computeWeights(game.board, "black", positionWeightFactor) +
+        countDiscTypes(game.board, "black", frontierWeight, interiorWeight);
     const whiteScore =
-        computeWeights(game.board, "white", factor) +
-        countDiscTypes(game.board, "white", frontier, interior);
+        computeWeights(game.board, "white", positionWeightFactor) +
+        countDiscTypes(game.board, "white", frontierWeight, interiorWeight);
 
     // Zero for draw
     const winWeight = game.isGameOver
@@ -165,6 +177,7 @@ const performMove = (
     return game.board;
 };
 
+// To allow for retrieving best evaluation AND moves to get there
 class ScoredMoves {
     moves: number[][];
     score: number;
@@ -178,14 +191,9 @@ class ScoredMoves {
 export class GameVsAI extends Game {
     difficulty: number;
 
-    constructor(
-        initialState: BoardState | null = null,
-        turn: "black" | "white" = "black",
-        difficulty: number
-    ) {
+    constructor(turn: "black" | "white" = "black", difficulty: number) {
         super();
 
-        if (initialState) this.board = initialState;
         if (turn) this.turn = turn;
 
         this.blackName = "You";
@@ -193,6 +201,7 @@ export class GameVsAI extends Game {
         this.difficulty = difficulty;
     }
 
+    // Recursive function to determine best move for AI
     minimax(
         board: BoardState,
         moves: number[][],
@@ -279,15 +288,15 @@ export class GameVsAI extends Game {
             );
 
             if (!bestMoves.moves.length) {
-                console.log("No moves for AI");
+                // No moves for AI, play reverts to human player
                 this.turn = this.otherPlayer;
+
                 if (!this.anyMovesLeft) {
                     this.finished = true;
                 }
+
                 return false;
             }
-
-            console.log(bestMoves);
 
             const bestMove = bestMoves.moves[0];
 

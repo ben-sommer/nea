@@ -1,8 +1,7 @@
 "use client";
 
 import Board from "@/components/Board";
-import { Game } from "@/definitions/game";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { proxy } from "valtio";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import SignIn from "@/components/SignIn";
@@ -19,9 +18,14 @@ import Leaderboard from "@/components/Leaderboard";
 export default function OnlineMultiplayer() {
     const [signedIn, setSignedIn] = useState(true);
     const [signInError, setSignInError] = useState("");
+
     const [players, setPlayers] = useState<Player[]>([]);
     const [self, setSelf] = useState<Player | null>(null);
+
+    // Whether the user is in an active game or not
     const [inGame, setInGame] = useState(false);
+
+    // Invite maps
     const [invitedBy, setInvitedBy] = useState<{ [username: string]: boolean }>(
         {}
     );
@@ -29,20 +33,27 @@ export default function OnlineMultiplayer() {
         [username: string]: boolean;
     }>({});
 
+    // Token is stored in cookie so user doesn't have to log in each time
     const [cookies, setCookie, removeCookie] = useCookies(["token"]);
 
+    // Used to check whether to reconnect after user clicks away from tab and returns
     const didUnmount = useRef(false);
 
+    // Current game
     const [game, setGame] = useState<OnlineGame | null>(null);
+
+    // All active games
     const [games, setGames] = useState<any[]>([]);
 
     const { sendMessage, readyState } = useWebSocket(
         process.env.NEXT_PUBLIC_WS_ADDRESS as string,
         {
             reconnectInterval: (attemptNumber) => {
+                // Exponential backoff to decrease number of unsuccessful reconnection attempts
                 return Math.min(Math.pow(2, attemptNumber) * 1000, 10000);
             },
             shouldReconnect: (event) => {
+                // Only reconnect if the online multiplayer mode is active
                 return didUnmount.current == false;
             },
             onOpen: () => {
@@ -61,21 +72,19 @@ export default function OnlineMultiplayer() {
                     const instruction = parsedMessage[0];
                     const body = parsedMessage[1] || "";
 
-                    console.log({
-                        instruction,
-                        body,
-                    });
-
                     switch (instruction) {
                         case "auth:login:error":
                             setSignedIn(false);
                             setSignInError(body);
+
                             break;
                         case "auth:login:success":
                             setSignedIn(true);
                             setSelf(body);
+
                             setInvitedBy(body.invitedBy);
                             setSentInvites(body.sentInvites);
+
                             break;
                         case "info:players":
                             setInvitedBy(
@@ -90,10 +99,13 @@ export default function OnlineMultiplayer() {
                                         player.username == self?.username
                                 )?.sentInvites || {}
                             );
+
                             setPlayers(body);
+
                             break;
                         case "info:games":
                             setGames(body);
+
                             break;
                         case "game:send-invite:error":
                             toast.error(
@@ -101,6 +113,7 @@ export default function OnlineMultiplayer() {
                                     Error inviting <b>{body}</b> to a game
                                 </span>
                             );
+
                             break;
                         case "game:send-invite:success":
                             toast(
@@ -118,8 +131,10 @@ export default function OnlineMultiplayer() {
                                 ...invitedBy,
                                 [body]: true,
                             }));
+
                             break;
                         case "game:state":
+                            // Scoped to avoid issues redeclaring game constant
                             {
                                 const game = new OnlineGame(sendMessage);
                                 setSelf(body.self);
@@ -136,12 +151,14 @@ export default function OnlineMultiplayer() {
                                         : body.whiteName;
                                 game.turn = body.turn;
 
+                                // React handles state differently to vanilla js so proxy is needed for stateful class instance
                                 setGame(proxy(game));
                                 setInGame(true);
                             }
                             break;
                         case "game:move:error":
                             toast.error(body || "Error making move");
+
                             break;
                         case "game:forfeited":
                             if (game) {
@@ -153,12 +170,14 @@ export default function OnlineMultiplayer() {
                                 newGame.whiteName = game.whiteName;
                                 newGame.turn = game.turn;
 
+                                // React handles state differently to vanilla js so proxy is needed for stateful class instance
                                 setGame(proxy(newGame));
                             }
+
                             break;
                     }
                 } catch (e: any) {
-                    console.log(e.message);
+                    toast.error(e.message || "An error occurred");
                 }
             },
         }
@@ -167,6 +186,7 @@ export default function OnlineMultiplayer() {
     const onInvite = (username: string) => {
         sendMessage(JSON.stringify(["game:send-invite", username]));
 
+        // Update local invite map
         setSentInvites((sentInvites) => ({
             ...sentInvites,
             [username]: true,

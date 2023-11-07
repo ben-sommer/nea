@@ -1,5 +1,5 @@
 import { ServerGame } from "@/types/game";
-import { IoGameController, IoGameControllerOutline } from "react-icons/io5";
+import { IoGameController } from "react-icons/io5";
 
 export default function GameList({
     games,
