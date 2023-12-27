@@ -29,6 +29,7 @@ export default function PlayerVsAI() {
                     completionButtonOnClick={() => game.reset()}
                     completionButtonText="Start a new game"
                     hintLevel={0}
+                    disableWhiteClick={true}
                 />
                 <select
                     className="px-4 py-2 rounded-md border border-gray-300 bg-white shadow-md text-sm font-medium outline-none focus:ring-2 ring-indigo-500 cursor-pointer"

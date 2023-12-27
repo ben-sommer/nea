@@ -110,12 +110,14 @@ export default function Board({
     completionButtonOnClick,
     self,
     hintLevel = 0,
+    disableWhiteClick = false,
 }: {
     game: OnlineGame | Game;
     completionButtonText: string;
     completionButtonOnClick: () => void;
     self?: any;
     hintLevel?: number;
+    disableWhiteClick: boolean;
 }) {
     // Hack to use stateful class instances withj React components
     const snap = useSnapshot(game);
@@ -147,11 +149,15 @@ export default function Board({
                                         style={{
                                             backgroundColor: "#CDCDCD",
                                         }}
-                                        onClick={(_) =>
-                                            game.handleSquareClick(
-                                                columnIndex,
-                                                7 - rowIndex
-                                            )
+                                        onClick={
+                                            disableWhiteClick &&
+                                            snap.turn == "white"
+                                                ? (_) => {}
+                                                : (_) =>
+                                                      game.handleSquareClick(
+                                                          columnIndex,
+                                                          7 - rowIndex
+                                                      )
                                         }
                                     >
                                         <Counter
